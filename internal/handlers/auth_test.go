@@ -312,7 +312,7 @@ func TestHandleInvitePostShortPassword(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /invite/{token}", handlers.HandleInvitePost(database, re))
 
-	body := strings.NewReader("password=short&password_confirm=short")
+	body := strings.NewReader("password=abc&password_confirm=abc")
 	req := httptest.NewRequest("POST", "/invite/test-token-123", body)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	rr := httptest.NewRecorder()
@@ -321,7 +321,7 @@ func TestHandleInvitePostShortPassword(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Errorf("expected 200, got %d", rr.Code)
 	}
-	if !strings.Contains(rr.Body.String(), "символів") {
+	if !strings.Contains(rr.Body.String(), "символи") {
 		t.Errorf("expected short-password error in body, got: %s", rr.Body.String())
 	}
 }

@@ -111,8 +111,8 @@ func HandleInvitePost(db *sql.DB, re *Renderer) http.HandlerFunc {
 		password := r.FormValue("password")
 		confirm := r.FormValue("password_confirm")
 
-		if len(password) < 8 {
-			renderErr("Пароль повинен містити щонайменше 8 символів")
+		if len(password) < 4 {
+			renderErr("Пароль повинен містити щонайменше 4 символи")
 			return
 		}
 		if password != confirm {
@@ -254,8 +254,8 @@ func HandleResetPost(db *sql.DB, re *Renderer) http.HandlerFunc {
 		password := r.FormValue("password")
 		confirm := r.FormValue("password_confirm")
 
-		if len(password) < 8 {
-			renderErr("Пароль повинен містити щонайменше 8 символів")
+		if len(password) < 4 {
+			renderErr("Пароль повинен містити щонайменше 4 символи")
 			return
 		}
 		if password != confirm {

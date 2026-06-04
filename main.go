@@ -2,12 +2,13 @@ package main
 
 import (
 	"embed"
+	"flag"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 
-	"github.com/postup-app/postup/cmd"
+	"github.com/postup-app/postup/internal/bootstrap"
 	"github.com/postup-app/postup/internal/db"
 	"github.com/postup-app/postup/internal/handlers"
 	"github.com/postup-app/postup/internal/ipdetect"
@@ -21,9 +22,8 @@ import (
 var embedded embed.FS
 
 func main() {
-	if cmd.Run() {
-		os.Exit(0)
-	}
+	doReset := flag.Bool("reset", false, "Reset admin password")
+	flag.Parse()
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -42,8 +42,15 @@ func main() {
 	}
 	defer database.Close()
 
-	if err := db.Migrate(database); err != nil {
-		log.Fatalf("migrate: %v", err)
+	if *doReset {
+		if err := bootstrap.ResetAdminPassword(database); err != nil {
+			log.Fatal(err)
+		}
+		os.Exit(0)
+	}
+
+	if err := bootstrap.Bootstrap(database); err != nil {
+		log.Fatal(err)
 	}
 
 	scheduler.StartArchiveScheduler(database)
@@ -59,12 +66,6 @@ func main() {
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, req *http.Request) {
 		if req.URL.Path != "/" {
 			http.NotFound(w, req)
-			return
-		}
-		var count int
-		database.QueryRow(`SELECT COUNT(*) FROM users WHERE role = 'admin'`).Scan(&count)
-		if count == 0 {
-			http.Redirect(w, req, "/setup", http.StatusSeeOther)
 			return
 		}
 		if cookie, err := req.Cookie("session_id"); err == nil {
@@ -89,7 +90,6 @@ func main() {
 	mux.Handle("POST /retros/{id}", auth.RequireAdmin(handlers.HandleRetrosUpdate(database, r)))
 	mux.Handle("POST /retros/{id}/finish", auth.RequireAdmin(handlers.HandleRetrosFinish(database)))
 	mux.HandleFunc("GET /join/{token}", handlers.HandleRetrosJoin(database))
-	mux.HandleFunc("GET /setup", handlers.HandleSetup(r))
 	mux.HandleFunc("GET /login", handlers.HandleLoginGet(database, r))
 	mux.HandleFunc("POST /login", handlers.HandleLoginPost(database, r))
 	mux.HandleFunc("GET /logout", handlers.HandleLogout(database))
