@@ -225,13 +225,7 @@ postup/                      # репозиторій
 
 - [x] Крок 1 — `.gitignore` існує
 - [x] Крок 2 — `.github/workflows/release.yml` існує
-- [ ] Крок 3 — ініціалізувати git і зробити перший коміт:
-  ```
-  git init
-  git add .
-  git commit -m "feat: initial release candidate"
-  ```
-  Перед комітом перевірити `git status` — переконатись що `*.db`, бінарники, `.DS_Store` не потрапляють.
+- [x] Крок 3 — `git init` зроблено, перший коміт `bdc35f2` (`feat: initial release candidate`)
 
 **Стратегія git під час UAT:**
 - Локальні коміти після кожного фіксу — тільки на машині оператора

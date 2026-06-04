@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/vladyslavkondratiuk/postup/internal/models"
+	"github.com/postup-app/postup/internal/models"
 )
 
 func HandleStatusesIndex(db *sql.DB, re *Renderer) http.HandlerFunc {

@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vladyslavkondratiuk/postup/internal/db"
-	"github.com/vladyslavkondratiuk/postup/internal/session"
+	"github.com/postup-app/postup/internal/db"
+	"github.com/postup-app/postup/internal/session"
 )
 
 func openTestDB(t *testing.T) *sql.DB {

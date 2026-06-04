@@ -11,11 +11,11 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/vladyslavkondratiuk/postup/internal/db"
-	"github.com/vladyslavkondratiuk/postup/internal/handlers"
-	"github.com/vladyslavkondratiuk/postup/internal/middleware"
-	"github.com/vladyslavkondratiuk/postup/internal/session"
-	"github.com/vladyslavkondratiuk/postup/internal/ws"
+	"github.com/postup-app/postup/internal/db"
+	"github.com/postup-app/postup/internal/handlers"
+	"github.com/postup-app/postup/internal/middleware"
+	"github.com/postup-app/postup/internal/session"
+	"github.com/postup-app/postup/internal/ws"
 )
 
 // wsURL converts http://... to ws://...

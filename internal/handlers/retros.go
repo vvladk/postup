@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vladyslavkondratiuk/postup/internal/middleware"
-	"github.com/vladyslavkondratiuk/postup/internal/session"
+	"github.com/postup-app/postup/internal/middleware"
+	"github.com/postup-app/postup/internal/session"
 )
 
 type retroListItem struct {

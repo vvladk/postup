@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vladyslavkondratiuk/postup/internal/middleware"
-	"github.com/vladyslavkondratiuk/postup/internal/models"
-	"github.com/vladyslavkondratiuk/postup/internal/ws"
+	"github.com/postup-app/postup/internal/middleware"
+	"github.com/postup-app/postup/internal/models"
+	"github.com/postup-app/postup/internal/ws"
 )
 
 type boardRetro struct {

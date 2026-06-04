@@ -3,7 +3,7 @@ package i18n_test
 import (
 	"testing"
 
-	"github.com/vladyslavkondratiuk/postup/internal/i18n"
+	"github.com/postup-app/postup/internal/i18n"
 )
 
 // Тест 7 — відомий ключ, мова uk

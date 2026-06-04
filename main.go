@@ -7,14 +7,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/vladyslavkondratiuk/postup/cmd"
-	"github.com/vladyslavkondratiuk/postup/internal/db"
-	"github.com/vladyslavkondratiuk/postup/internal/handlers"
-	"github.com/vladyslavkondratiuk/postup/internal/ipdetect"
-	"github.com/vladyslavkondratiuk/postup/internal/middleware"
-	"github.com/vladyslavkondratiuk/postup/internal/scheduler"
-	"github.com/vladyslavkondratiuk/postup/internal/session"
-	"github.com/vladyslavkondratiuk/postup/internal/ws"
+	"github.com/postup-app/postup/cmd"
+	"github.com/postup-app/postup/internal/db"
+	"github.com/postup-app/postup/internal/handlers"
+	"github.com/postup-app/postup/internal/ipdetect"
+	"github.com/postup-app/postup/internal/middleware"
+	"github.com/postup-app/postup/internal/scheduler"
+	"github.com/postup-app/postup/internal/session"
+	"github.com/postup-app/postup/internal/ws"
 )
 
 //go:embed templates static

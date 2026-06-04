@@ -11,7 +11,7 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/vladyslavkondratiuk/postup/internal/handlers"
+	"github.com/postup-app/postup/internal/handlers"
 )
 
 // newStatusesRenderer outputs names separated by ";" for easy order checking.

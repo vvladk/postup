@@ -10,7 +10,7 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/vladyslavkondratiuk/postup/internal/handlers"
+	"github.com/postup-app/postup/internal/handlers"
 )
 
 func newUsersRenderer() *handlers.Renderer {

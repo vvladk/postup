@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/vladyslavkondratiuk/postup/internal/session"
+	"github.com/postup-app/postup/internal/session"
 )
 
 func HandleLoginGet(db *sql.DB, re *Renderer) http.HandlerFunc {

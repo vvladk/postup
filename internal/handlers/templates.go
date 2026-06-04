@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vladyslavkondratiuk/postup/internal/models"
+	"github.com/postup-app/postup/internal/models"
 )
 
 func HandleTemplatesIndex(db *sql.DB, re *Renderer) http.HandlerFunc {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vladyslavkondratiuk/postup/internal/middleware"
+	"github.com/postup-app/postup/internal/middleware"
 )
 
 func HandleSettingsShow(db *sql.DB, re *Renderer) http.HandlerFunc {

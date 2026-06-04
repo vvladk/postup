@@ -7,9 +7,9 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/vladyslavkondratiuk/postup/internal/handlers"
-	"github.com/vladyslavkondratiuk/postup/internal/middleware"
-	"github.com/vladyslavkondratiuk/postup/internal/session"
+	"github.com/postup-app/postup/internal/handlers"
+	"github.com/postup-app/postup/internal/middleware"
+	"github.com/postup-app/postup/internal/session"
 )
 
 func newTimerRenderer() *handlers.Renderer {

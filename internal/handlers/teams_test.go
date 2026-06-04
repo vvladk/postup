@@ -8,7 +8,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/vladyslavkondratiuk/postup/internal/handlers"
+	"github.com/postup-app/postup/internal/handlers"
 )
 
 func newTeamsNewRenderer() *handlers.Renderer {

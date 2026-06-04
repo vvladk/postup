@@ -11,7 +11,7 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/vladyslavkondratiuk/postup/internal/handlers"
+	"github.com/postup-app/postup/internal/handlers"
 )
 
 func createTemplate(t *testing.T, database *sql.DB, name string, regularColumns []string) int64 {

@@ -1,4 +1,4 @@
-module github.com/vladyslavkondratiuk/postup
+module github.com/postup-app/postup
 
 go 1.25.0
 

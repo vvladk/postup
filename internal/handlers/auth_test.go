@@ -11,9 +11,9 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/vladyslavkondratiuk/postup/internal/db"
-	"github.com/vladyslavkondratiuk/postup/internal/handlers"
-	"github.com/vladyslavkondratiuk/postup/internal/session"
+	"github.com/postup-app/postup/internal/db"
+	"github.com/postup-app/postup/internal/handlers"
+	"github.com/postup-app/postup/internal/session"
 )
 
 func newTestDB(t *testing.T) *sql.DB {

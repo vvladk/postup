@@ -13,10 +13,10 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/vladyslavkondratiuk/postup/internal/handlers"
-	"github.com/vladyslavkondratiuk/postup/internal/middleware"
-	"github.com/vladyslavkondratiuk/postup/internal/session"
-	"github.com/vladyslavkondratiuk/postup/internal/ws"
+	"github.com/postup-app/postup/internal/handlers"
+	"github.com/postup-app/postup/internal/middleware"
+	"github.com/postup-app/postup/internal/session"
+	"github.com/postup-app/postup/internal/ws"
 )
 
 func createRetroWithParticipants(t *testing.T, database *sql.DB, teamID, templateID int64, userIDs []int64) int64 {

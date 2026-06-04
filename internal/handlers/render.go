@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/vladyslavkondratiuk/postup/internal/i18n"
-	"github.com/vladyslavkondratiuk/postup/internal/middleware"
+	"github.com/postup-app/postup/internal/i18n"
+	"github.com/postup-app/postup/internal/middleware"
 )
 
 type Renderer struct {

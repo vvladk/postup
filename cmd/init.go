@@ -12,7 +12,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/vladyslavkondratiuk/postup/internal/db"
+	"github.com/postup-app/postup/internal/db"
 )
 
 var (

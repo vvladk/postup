@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/vladyslavkondratiuk/postup/internal/models"
-	"github.com/vladyslavkondratiuk/postup/internal/session"
+	"github.com/postup-app/postup/internal/models"
+	"github.com/postup-app/postup/internal/session"
 )
 
 type contextKey string

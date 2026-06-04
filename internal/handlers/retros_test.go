@@ -11,8 +11,8 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/vladyslavkondratiuk/postup/internal/handlers"
-	"github.com/vladyslavkondratiuk/postup/internal/session"
+	"github.com/postup-app/postup/internal/handlers"
+	"github.com/postup-app/postup/internal/session"
 )
 
 func newRetrosRenderer() *handlers.Renderer {
