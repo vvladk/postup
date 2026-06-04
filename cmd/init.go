@@ -29,8 +29,8 @@ func Run() bool {
 	fs := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	doInit := fs.Bool("init", false, "Initialize admin account")
 	doReset := fs.Bool("reset", false, "Reset admin password")
-	email := fs.String("email", "", "Admin email address")
-	password := fs.String("password", "", "Admin password (min 8 chars)")
+	email := fs.String("e", "", "Admin email address")
+	password := fs.String("p", "", "Admin password (min 8 chars)")
 
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
