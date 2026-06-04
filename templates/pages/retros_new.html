@@ -1,0 +1,55 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Нова ретроспектива</h1>
+</div>
+
+{{template "form_error" .Error}}
+
+<form method="POST" action="/retros" class="retro-form">
+    <div class="form-group">
+        <label for="team_id">Команда</label>
+        <select name="team_id" id="team_id" required>
+            {{range .Teams}}
+            <option value="{{.ID}}" {{if eq .ID $.TeamID}}selected{{end}}>{{.Name}}</option>
+            {{end}}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="template_id">Шаблон</label>
+        <select name="template_id" id="template_id" required
+                onchange="updateTemplatePreview(this)">
+            {{range .Templates}}
+            <option value="{{.ID}}"
+                    data-columns="{{.ColumnsPreview}}"
+                    {{if eq .ID $.TemplateID}}selected{{end}}>{{.Name}}</option>
+            {{end}}
+        </select>
+        <div id="template-preview" class="field-hint"></div>
+    </div>
+
+    <div class="form-group">
+        <label for="date">Дата і час</label>
+        <input type="datetime-local" name="date" id="date"
+               value="{{.Date}}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="vote_limit">Ліміт голосів на учасника</label>
+        <input type="number" name="vote_limit" id="vote_limit"
+               value="{{.VoteLimit}}" min="1" max="50">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Створити</button>
+</form>
+
+<script>
+function updateTemplatePreview(select) {
+    const opt = select.selectedOptions[0];
+    const preview = document.getElementById('template-preview');
+    preview.textContent = opt && opt.dataset.columns ? opt.dataset.columns : '';
+}
+const tmplSelect = document.getElementById('template_id');
+if (tmplSelect) updateTemplatePreview(tmplSelect);
+</script>
+{{end}}

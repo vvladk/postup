@@ -1,0 +1,66 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Шаблони</h1>
+    <a href="/templates/new" class="btn btn-primary">Створити шаблон</a>
+</div>
+
+{{if .Flash}}
+<div class="success">{{.Flash}}</div>
+{{end}}
+
+{{if .FlashError}}
+<div class="error">{{.FlashError}}</div>
+{{end}}
+
+{{if .Templates}}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Назва</th>
+            <th class="col-optional">Колонки</th>
+            <th class="col-optional">Ретро</th>
+            <th>Статус</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .Templates}}
+        <tr>
+            <td>{{.Name}}</td>
+            <td class="text-muted col-optional">
+                {{range $i, $col := .Columns}}{{if $i}} → {{end}}{{$col.Title}}{{end}}
+            </td>
+            <td class="col-optional">{{.RetrosCount}}</td>
+            <td>
+                {{if .IsArchived}}
+                <span class="badge badge-invited">Архів</span>
+                {{else}}
+                <span class="badge badge-active">Активний</span>
+                {{end}}
+            </td>
+            <td class="actions">
+                {{if .IsArchived}}
+                <span class="text-muted">—</span>
+                {{else}}
+                <a href="/templates/{{.ID}}/edit">Редагувати</a>
+                {{if .HasRetros}}
+                <form method="POST" action="/templates/{{.ID}}/archive" style="display:inline"
+                      onsubmit="return confirm('Архівувати шаблон «{{.Name}}»?')">
+                    <button type="submit" class="btn-link btn-link-danger">Архівувати</button>
+                </form>
+                {{else}}
+                <form method="POST" action="/templates/{{.ID}}/delete" style="display:inline"
+                      onsubmit="return confirm('Видалити шаблон «{{.Name}}»?')">
+                    <button type="submit" class="btn-link btn-link-danger">Видалити</button>
+                </form>
+                {{end}}
+                {{end}}
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{else}}
+{{template "empty_state" (dict "Icon" "📋" "Title" "Шаблонів ще немає" "Subtitle" "Створи шаблон для своїх ретроспектив" "ActionURL" "/templates/new" "ActionLabel" "Створити шаблон")}}
+{{end}}
+{{end}}

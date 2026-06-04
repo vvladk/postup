@@ -1,0 +1,87 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Користувачі</h1>
+    <a href="/users/new" class="btn btn-primary">Запросити користувача</a>
+</div>
+
+{{if .Flash}}
+<div class="success">{{.Flash}}</div>
+{{end}}
+
+{{if .FlashError}}
+<div class="error">{{.FlashError}}</div>
+{{end}}
+
+{{if .ResetLink}}
+<div class="success">
+    <p>Посилання для скидання пароля:</p>
+    <div class="invite-link-row">
+        <input type="text" id="reset-link" class="invite-link-input" value="{{.ResetLink}}" readonly>
+        <button type="button" class="btn btn-primary" onclick="copyResetLink()">Копіювати</button>
+    </div>
+</div>
+{{end}}
+
+<form class="filter-bar" method="GET" action="/users">
+    <input type="text" name="search" value="{{.Search}}" placeholder="Пошук за email або іменем">
+    {{if gt (len .Teams) 1}}
+    <select name="team_id">
+        <option value="">Всі команди</option>
+        {{range .Teams}}
+        <option value="{{.ID}}"{{if eq $.SelectedTeamID .ID}} selected{{end}}>{{.Name}}</option>
+        {{end}}
+    </select>
+    {{end}}
+    <button type="submit" class="btn">Фільтрувати</button>
+</form>
+
+{{if .Users}}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Імʼя</th>
+            <th class="col-optional">Команди</th>
+            <th>Статус</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .Users}}
+        <tr>
+            <td>{{.Email}}</td>
+            <td>
+                {{if or .FirstName .LastName}}
+                {{.FirstName}} {{.LastName}}
+                {{else}}
+                <span class="text-muted">—</span>
+                {{end}}
+            </td>
+            <td class="col-optional">
+                {{if .TeamNames}}{{.TeamNames}}{{else}}<span class="text-muted">—</span>{{end}}
+            </td>
+            <td>
+                {{if .Active}}
+                <span class="badge badge-active">Активний</span>
+                {{else}}
+                <span class="badge badge-invited">Запрошений</span>
+                {{end}}
+            </td>
+            <td class="actions">
+                <a href="/users/{{.ID}}/edit">Редагувати</a>
+                <form method="POST" action="/users/{{.ID}}/reset-password" style="display:inline">
+                    <button type="submit" class="btn-link">Скинути пароль</button>
+                </form>
+                <form method="POST" action="/users/{{.ID}}/delete" style="display:inline"
+                      onsubmit="return confirm('Видалити користувача {{.Email}}?')">
+                    <button type="submit" class="btn-link btn-link-danger">Видалити</button>
+                </form>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{else}}
+{{template "empty_state" (dict "Icon" "👥" "Title" "Користувачів ще немає" "Subtitle" "Запроси першого учасника команди" "ActionURL" "/users/new" "ActionLabel" "Запросити")}}
+{{end}}
+{{end}}

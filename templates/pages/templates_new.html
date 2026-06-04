@@ -1,0 +1,97 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Новий шаблон</h1>
+    <a href="/templates" class="btn">← Назад</a>
+</div>
+
+{{template "form_error" .Error}}
+
+<form class="template-form" method="POST" action="/templates" id="template-form">
+    <div class="form-group">
+        <label for="name">Назва шаблону</label>
+        <input type="text" id="name" name="name" value="{{.Name}}" required autofocus>
+    </div>
+
+    <div class="form-group">
+        <label>Колонки</label>
+        <div class="columns-editor" id="columns-editor">
+            <div class="column-item column-fixed">
+                <span class="column-label">Action items</span>
+            </div>
+            <div id="regular-columns">
+                {{if .Columns}}
+                {{range .Columns}}
+                <div class="column-item column-regular" draggable="true" data-position="">
+                    <span class="drag-handle">⠿</span>
+                    <input type="text" name="columns[]" value="{{.}}" placeholder="Назва колонки" required>
+                    <input type="hidden" name="positions[]" value="">
+                    <button type="button" class="column-remove" onclick="removeColumn(this)" title="Видалити">×</button>
+                </div>
+                {{end}}
+                {{else}}
+                <div class="column-item column-regular" draggable="true" data-position="">
+                    <span class="drag-handle">⠿</span>
+                    <input type="text" name="columns[]" placeholder="Назва колонки" required>
+                    <input type="hidden" name="positions[]" value="">
+                    <button type="button" class="column-remove" onclick="removeColumn(this)" title="Видалити">×</button>
+                </div>
+                {{end}}
+            </div>
+            <div class="column-item column-fixed">
+                <span class="column-label">Нові дії</span>
+            </div>
+        </div>
+        <div class="columns-editor-footer">
+            <button type="button" class="btn btn-secondary" id="add-column-btn" onclick="addColumn()">+ Додати колонку</button>
+            <span class="field-hint" id="columns-hint"></span>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Створити</button>
+</form>
+
+<script>
+const MAX_COLUMNS = 5;
+
+function getRegularColumns() {
+    return document.querySelectorAll('#regular-columns .column-item');
+}
+
+function updateUI() {
+    const cols = getRegularColumns();
+    const count = cols.length;
+    document.getElementById('add-column-btn').disabled = count >= MAX_COLUMNS;
+    document.getElementById('columns-hint').textContent = count + ' / ' + MAX_COLUMNS;
+    cols.forEach((col, i) => {
+        col.dataset.position = i + 1;
+        const posInput = col.querySelector('input[name="positions[]"]');
+        if (posInput) posInput.value = i + 1;
+        const removeBtn = col.querySelector('.column-remove');
+        if (removeBtn) removeBtn.disabled = count <= 1;
+    });
+}
+
+function addColumn() {
+    if (getRegularColumns().length >= MAX_COLUMNS) return;
+    const div = document.createElement('div');
+    div.className = 'column-item column-regular';
+    div.draggable = true;
+    div.innerHTML = '<span class="drag-handle">⠿</span>'
+        + '<input type="text" name="columns[]" placeholder="Назва колонки" required>'
+        + '<input type="hidden" name="positions[]" value="">'
+        + '<button type="button" class="column-remove" onclick="removeColumn(this)" title="Видалити">×</button>';
+    document.getElementById('regular-columns').appendChild(div);
+    div.querySelector('input[type="text"]').focus();
+    updateUI();
+}
+
+function removeColumn(btn) {
+    if (getRegularColumns().length <= 1) return;
+    btn.closest('.column-item').remove();
+    updateUI();
+}
+
+updateUI();
+initColumnDragDrop('.columns-editor');
+</script>
+{{end}}

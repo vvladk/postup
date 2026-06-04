@@ -1,0 +1,10 @@
+{{define "empty_state"}}
+<div class="empty-state">
+  <div class="empty-state__icon">{{.Icon}}</div>
+  <p class="empty-state__title">{{.Title}}</p>
+  <p class="empty-state__subtitle">{{.Subtitle}}</p>
+  {{if .ActionURL}}
+    <a href="{{.ActionURL}}" class="btn btn-primary">{{.ActionLabel}}</a>
+  {{end}}
+</div>
+{{end}}

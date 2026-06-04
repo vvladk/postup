@@ -1,0 +1,108 @@
+{{define "body-data"}}data-current-user-id="{{.CurrentUserID}}" data-retro-id="{{.Retro.ID}}" data-retro-active="{{if .IsActive}}true{{else}}false{{end}}" data-vote-limit="{{.Retro.VoteLimit}}"{{end}}
+
+{{define "content"}}
+<div class="board-header">
+    <div class="board-header-left">
+        <div class="board-retro-team">{{.Retro.TeamName}}</div>
+        <div class="board-retro-date">{{.Retro.Date.Format "02.01.2006 о 15:04"}}</div>
+    </div>
+    <div class="board-header-right">
+        <span class="board-votes-badge" id="votes-badge">Голоси: {{.VotesRemaining}}/{{.Retro.VoteLimit}}</span>
+        {{if .IsActive}}
+        <span class="badge badge-active">Активне</span>
+        {{else}}
+        <span class="badge badge-finished">Завершено</span>
+        {{end}}
+    </div>
+</div>
+
+<div class="board-columns">
+    {{range .Columns}}
+    <div class="board-column{{if eq .Type "fixed_first"}} board-column--fixed-first{{else if eq .Type "fixed_last"}} board-column--fixed-last{{end}}"
+         data-column-id="{{.ID}}" data-column-type="{{.Type}}">
+        <div class="board-column-header">
+            <span class="board-column-title">{{.Title}}</span>
+            <span class="board-column-count">
+                {{if eq .Type "regular"}}
+                {{len (index $.CardsByColumn .ID)}}
+                {{else}}
+                {{len (index $.ActionItemsByColumn .ID)}}
+                {{end}}
+            </span>
+        </div>
+
+        {{if eq .Type "regular"}}
+        <div class="board-column-cards">
+            {{$cards := index $.CardsByColumn .ID}}
+            {{if not $cards}}<p class="column-empty">Немає карток</p>{{end}}
+            {{range $cards}}
+            <div class="board-card"
+                 data-card-id="{{.ID}}"
+                 data-author-id="{{.AuthorID}}"
+                 {{if eq .AuthorID $.CurrentUserID}}draggable="true"{{end}}>
+                <div class="board-card-content">{{.Content}}</div>
+                {{if $.IsActive}}
+                <button class="board-card-vote-btn{{if gt (index $.MyVotes .ID) 0}} board-card-vote-btn--voted{{end}}"
+                        data-card-id="{{.ID}}">
+                    ▲ <span class="board-card-vote-count">{{index $.VotesByCard .ID}}</span>
+                </button>
+                {{end}}
+                <div class="board-card-footer">
+                    <span class="board-card-author">{{.AuthorFirstName}} {{.AuthorLastName}}</span>
+                    {{if eq .AuthorID $.CurrentUserID}}
+                    <button class="board-card-menu-btn" title="Дії з карткою" data-card-id="{{.ID}}">···</button>
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+        </div>
+        {{if $.IsActive}}
+        <form class="board-add-card-form" data-column-id="{{.ID}}">
+            <textarea class="board-add-card-input" placeholder="Нова картка..." rows="2"></textarea>
+            <button type="submit" class="btn btn-primary board-add-card-btn">Додати</button>
+        </form>
+        {{end}}
+
+        {{else}}
+        {{/* fixed_first or fixed_last — action items */}}
+        <div class="board-column-cards" id="action-col-{{.ID}}">
+            {{$items := index $.ActionItemsByColumn .ID}}
+            {{range $items}}
+            {{$item := .}}
+            <div class="action-item" data-item-id="{{$item.ID}}">
+                <div class="action-item-content">{{$item.Content}}</div>
+                <div class="action-item-meta">
+                    <span class="action-item-assignee">👤 {{$item.AssigneeFirstName}} {{$item.AssigneeLastName}}</span>
+                    <span class="action-item-deadline">📅 {{$item.Deadline.Format "02.01.2006"}}</span>
+                </div>
+                <div class="action-item-status">
+                    <select class="action-item-status-select" data-item-id="{{$item.ID}}">
+                        {{range $.Statuses}}
+                        <option value="{{.ID}}"{{if eq .ID $item.StatusID}} selected{{end}}>{{.Name}}</option>
+                        {{end}}
+                    </select>
+                </div>
+            </div>
+            {{end}}
+        </div>
+        {{if and $.IsActive (eq .Type "fixed_last")}}
+        <form class="board-add-action-item-form" data-column-id="{{.ID}}" data-retro-id="{{$.Retro.ID}}">
+            <textarea class="board-add-card-input" name="content" placeholder="Action item..." rows="2"></textarea>
+            <select name="assignee_id" class="action-item-select board-add-card-input" required>
+                <option value="">Відповідальний...</option>
+                {{range $.Participants}}
+                <option value="{{.ID}}">{{.FirstName}} {{.LastName}}</option>
+                {{end}}
+            </select>
+            <input type="date" name="deadline" class="action-item-date board-add-card-input" required>
+            <button type="submit" class="btn btn-primary board-add-card-btn">Додати action item</button>
+        </form>
+        {{end}}
+        {{end}}
+    </div>
+    {{end}}
+</div>
+
+<script>window.boardStatuses = {{.StatusesJSON}};</script>
+<script src="/static/js/board.js"></script>
+{{end}}

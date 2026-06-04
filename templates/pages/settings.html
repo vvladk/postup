@@ -1,0 +1,65 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>{{t "settings.title"}}</h1>
+</div>
+
+{{if .Saved}}
+<div class="success">{{t "settings.saved"}}</div>
+{{end}}
+
+{{if .CurrentUser.IsAdmin}}
+<section class="settings-section">
+    <p class="section-label">{{t "settings.system"}}</p>
+    <p class="text-muted" style="margin-top:0">{{t "settings.system_desc"}}</p>
+    <form method="POST" action="/settings" class="settings-form">
+        <input type="hidden" name="section" value="system">
+        <div class="form-group">
+            <label for="manual_ip">{{t "settings.ip"}}</label>
+            <input type="text" id="manual_ip" name="manual_ip" value="{{.ManualIP}}"
+                   placeholder="{{t "settings.ip_hint"}}">
+            <span class="field-hint">{{t "settings.ip_hint"}}</span>
+        </div>
+        <div class="form-group">
+            <label for="port">{{t "settings.port"}}</label>
+            <input type="number" id="port" name="port" value="{{.Port}}" min="1" max="65535" style="width:8rem">
+        </div>
+        <button type="submit" class="btn btn-primary">{{t "settings.save_system"}}</button>
+    </form>
+</section>
+<hr class="divider">
+{{end}}
+
+<section class="settings-section">
+    <p class="section-label">{{t "settings.personal"}}</p>
+    <form method="POST" action="/settings" class="settings-form" id="personal-form">
+        <input type="hidden" name="section" value="personal">
+        <div class="form-group">
+            <label>{{t "settings.lang"}}</label>
+            <div class="toggle-group">
+                <label class="toggle-option">
+                    <input type="radio" name="lang" value="uk" {{if eq .CurrentLang "uk"}}checked{{end}}>
+                    <span>{{t "settings.lang_uk"}}</span>
+                </label>
+                <label class="toggle-option">
+                    <input type="radio" name="lang" value="en" {{if eq .CurrentLang "en"}}checked{{end}}>
+                    <span>{{t "settings.lang_en"}}</span>
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>{{t "settings.theme"}}</label>
+            <div class="toggle-group">
+                <label class="toggle-option">
+                    <input type="radio" name="theme" value="dark" {{if eq .CurrentTheme "dark"}}checked{{end}}>
+                    <span>{{t "settings.theme_dark"}}</span>
+                </label>
+                <label class="toggle-option">
+                    <input type="radio" name="theme" value="light" {{if eq .CurrentTheme "light"}}checked{{end}}>
+                    <span>{{t "settings.theme_light"}}</span>
+                </label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">{{t "settings.save_personal"}}</button>
+    </form>
+</section>
+{{end}}

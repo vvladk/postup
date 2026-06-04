@@ -1,0 +1,23 @@
+# Бінарники (локальна збірка)
+/postup
+/postup.exe
+
+# База даних SQLite (включаючи WAL-файли)
+*.db
+*.db-shm
+*.db-wal
+
+# Zip архіви релізів
+*.zip
+
+# Збірка
+dist/
+build/
+
+# Середовище та системне
+.env
+.DS_Store
+Thumbs.db
+
+# Claude Code (локальні налаштування)
+.claude/settings.local.json

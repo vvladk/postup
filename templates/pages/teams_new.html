@@ -1,0 +1,16 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Створити команду</h1>
+    <a href="/teams" class="btn">← Назад</a>
+</div>
+
+{{template "form_error" .Error}}
+
+<form class="user-form" method="POST" action="/teams">
+    <div class="form-group">
+        <label for="name">Назва команди</label>
+        <input type="text" id="name" name="name" value="{{.Name}}" required autofocus>
+    </div>
+    <button type="submit" class="btn btn-primary">Зберегти</button>
+</form>
+{{end}}

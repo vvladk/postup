@@ -1,0 +1,24 @@
+{{define "content"}}
+<div class="login-page">
+    <h1>Скидання пароля</h1>
+    {{if .Success}}
+    <div class="success">
+        {{if .Link}}
+        <p>Посилання для скидання пароля:</p>
+        <pre><a href="{{.Link}}">{{.Link}}</a></pre>
+        {{else}}
+        <p>Якщо цей email зареєстрований, зверніться до адміністратора за посиланням.</p>
+        {{end}}
+    </div>
+    {{else}}
+    <p class="text-muted">Введіть ваш email — адміністратор отримає посилання для скидання пароля.</p>
+    <form method="POST" action="/forgot-password">
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required autofocus>
+        </div>
+        <button type="submit" class="btn btn-primary">Отримати посилання</button>
+    </form>
+    {{end}}
+</div>
+{{end}}

@@ -1,0 +1,88 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Ретроспективи</h1>
+    <a href="/retros/new" class="btn btn-primary">Створити ретроспективу</a>
+</div>
+
+{{if .FlashError}}
+<div class="error">{{.FlashError}}</div>
+{{end}}
+
+{{if .ActiveRetros}}
+<p class="section-label">Активні</p>
+<div class="retro-cards">
+    {{range .ActiveRetros}}
+    <div class="retro-card">
+        <div class="retro-card-team">{{.TeamName}}</div>
+        <div class="retro-card-date">{{.Date.Format "02.01.2006 о 15:04"}}</div>
+        <a href="/retros/{{.ID}}/board" class="btn btn-primary">Увійти в ретро</a>
+    </div>
+    {{end}}
+</div>
+{{end}}
+
+{{if .HasRetros}}
+<div class="filter-bar">
+    <form method="GET" action="/" style="display:contents">
+        <input type="date" name="date_from" value="{{.DateFrom}}">
+        <input type="date" name="date_to" value="{{.DateTo}}">
+        {{if .ShowTeamFilter}}
+        <select name="team_id">
+            <option value="0">Всі команди</option>
+            {{range .Teams}}
+            <option value="{{.ID}}" {{if eq .ID $.TeamID}}selected{{end}}>{{.Name}}</option>
+            {{end}}
+        </select>
+        {{end}}
+        <input type="hidden" name="sort" value="{{.Sort}}">
+        <button type="submit" class="btn btn-secondary">Фільтрувати</button>
+        {{if .HasFilters}}<a href="/" class="btn btn-secondary">Скинути</a>{{end}}
+    </form>
+</div>
+
+{{if .AllRetros}}
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <a href="/?sort={{.NextSort}}&date_from={{.DateFrom}}&date_to={{.DateTo}}&team_id={{.TeamID}}"
+                   class="sort-link">
+                    Дата {{if eq .Sort "asc"}}↑{{else}}↓{{end}}
+                </a>
+            </th>
+            <th>Команда</th>
+            <th class="col-optional">Шаблон</th>
+            <th>Статус</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .AllRetros}}
+        <tr>
+            <td>{{.Date.Format "02.01.2006 15:04"}}</td>
+            <td>{{.TeamName}}</td>
+            <td class="col-optional">{{if .TemplateName}}{{.TemplateName}}{{else}}<span class="text-muted">—</span>{{end}}</td>
+            <td>
+                {{if .IsActive}}
+                <span class="badge badge-active">Активне</span>
+                {{else}}
+                <span class="badge badge-finished">Завершено</span>
+                {{end}}
+            </td>
+            <td class="actions">
+                {{if .IsActive}}<a href="/retros/{{.ID}}/board">Увійти</a>{{end}}
+                <a href="/retros/{{.ID}}/edit">Редагувати</a>
+                <button class="btn-link" onclick="copyInviteLink({{.ID}})">Invite link</button>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{else}}
+<p class="text-muted" style="margin-top:1.5rem">Нічого не знайдено за вибраними фільтрами.</p>
+{{end}}
+
+{{else}}
+{{template "empty_state" (dict "Icon" "📅" "Title" "Ретроспектив ще немає" "Subtitle" "Створи першу ретроспективу для команди" "ActionURL" "/retros/new" "ActionLabel" "Створити ретроспективу")}}
+{{end}}
+{{end}}

@@ -1,0 +1,43 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Команди</h1>
+    <a href="/teams/new" class="btn btn-primary">Створити команду</a>
+</div>
+
+{{if .Flash}}
+<div class="success">{{.Flash}}</div>
+{{end}}
+
+{{if .FlashError}}
+<div class="error">{{.FlashError}}</div>
+{{end}}
+
+{{if .Teams}}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Назва</th>
+            <th>Учасники</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .Teams}}
+        <tr>
+            <td>{{.Name}}</td>
+            <td>{{.MembersCount}}</td>
+            <td class="actions">
+                <a href="/teams/{{.ID}}/edit">Редагувати</a>
+                <form method="POST" action="/teams/{{.ID}}/delete" style="display:inline"
+                      onsubmit="return confirm('Видалити команду {{.Name}}?')">
+                    <button type="submit" class="btn-link btn-link-danger">Видалити</button>
+                </form>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{else}}
+{{template "empty_state" (dict "Icon" "🏷️" "Title" "Команд ще немає" "Subtitle" "Створи першу команду і додай учасників" "ActionURL" "/teams/new" "ActionLabel" "Створити команду")}}
+{{end}}
+{{end}}

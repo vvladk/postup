@@ -1,0 +1,2 @@
+ALTER TABLE action_items ADD COLUMN content TEXT NOT NULL DEFAULT '';
+ALTER TABLE action_items ADD COLUMN column_id INTEGER;

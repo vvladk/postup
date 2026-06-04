@@ -1,0 +1,29 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Редагувати команду</h1>
+    <a href="/teams" class="btn">← Назад</a>
+</div>
+
+{{template "form_error" .Error}}
+
+<form class="user-form" method="POST" action="/teams/{{.Team.ID}}">
+    <div class="form-group">
+        <label for="name">Назва команди</label>
+        <input type="text" id="name" name="name" value="{{.Team.Name}}" required autofocus>
+    </div>
+    {{if .Users}}
+    <div class="form-group">
+        <label for="user_ids">Учасники</label>
+        <select id="user_ids" name="user_ids" multiple size="{{len .Users}}">
+            {{range .Users}}
+            <option value="{{.ID}}"{{if index $.MemberIDs .ID}} selected{{end}}>
+                {{- if or .FirstName .LastName}}{{.FirstName}} {{.LastName}} — {{end}}{{.Email}}
+            </option>
+            {{end}}
+        </select>
+        <span class="field-hint">Утримуй Ctrl / Cmd для вибору кількох учасників</span>
+    </div>
+    {{end}}
+    <button type="submit" class="btn btn-primary">Зберегти</button>
+</form>
+{{end}}

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="uk" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Таймер — Postup</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .timer-page {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .timer-display {
+            color: var(--text-primary);
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            transition: color 0.3s;
+            user-select: none;
+        }
+
+        .timer-display--warning  { color: #f97316; }
+        .timer-display--finished { color: #f85149; }
+
+        .timer-input-row {
+            align-items: center;
+            color: var(--text-muted);
+            display: flex;
+            font-size: 1.125rem;
+            gap: 0.5rem;
+        }
+
+        .timer-minutes-input {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            padding: 0.375rem 0.625rem;
+            text-align: center;
+            width: 5rem;
+        }
+
+        .timer-minutes-input:focus {
+            border-color: var(--accent-purple);
+            outline: none;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .timer-btn {
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.625rem 1.75rem;
+            transition: opacity 0.15s;
+        }
+
+        .timer-btn:hover:not(:disabled) { opacity: 0.82; }
+        .timer-btn:disabled { cursor: not-allowed; opacity: 0.35; }
+
+        .timer-btn--start { background-color: var(--accent-green); color: #0f1117; }
+        .timer-btn--pause { background-color: #f97316; color: #fff; }
+        .timer-btn--reset {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .youtube-section {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .youtube-input-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .youtube-url-input {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            flex: 1;
+            font-size: 0.9375rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .youtube-url-input:focus {
+            border-color: var(--accent-purple);
+            outline: none;
+        }
+
+        .youtube-player-wrap {
+            height: 0;
+            margin-top: 1rem;
+            padding-bottom: 56.25%;
+            position: relative;
+        }
+
+        .youtube-player-wrap iframe {
+            border: none;
+            border-radius: 6px;
+            height: 100%;
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+        }
+
+        .timer-back {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            left: 1.5rem;
+            position: fixed;
+            text-decoration: none;
+            top: 1rem;
+        }
+
+        .timer-back:hover { color: var(--text-primary); text-decoration: none; }
+    </style>
+</head>
+<body>
+<a class="timer-back" href="/">← Назад</a>
+
+<div class="timer-page">
+    <div id="timer-display" class="timer-display">10:00</div>
+
+    <div class="timer-input-row">
+        <label for="timer-minutes">Хвилин:</label>
+        <input id="timer-minutes" class="timer-minutes-input"
+               type="number" value="10" min="1" max="99">
+    </div>
+
+    <div class="timer-controls">
+        <button id="btn-start" class="timer-btn timer-btn--start">Старт</button>
+        <button id="btn-pause" class="timer-btn timer-btn--pause" disabled>Пауза</button>
+        <button id="btn-reset" class="timer-btn timer-btn--reset">Скинути</button>
+    </div>
+
+    <div class="youtube-section">
+        <div class="youtube-input-row">
+            <input id="youtube-url" class="youtube-url-input"
+                   type="text" placeholder="YouTube посилання...">
+            <button id="btn-load-yt" class="btn btn-primary">Завантажити</button>
+        </div>
+        <div id="youtube-player" class="youtube-player-wrap" hidden>
+            <iframe id="youtube-iframe" src=""
+                    allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/timer.js"></script>
+</body>
+</html>

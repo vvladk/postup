@@ -1,0 +1,46 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Мої ретроспективи</h1>
+</div>
+
+{{if .Active}}
+{{range .Active}}
+<div class="member-active-card">
+    <div>
+        <div class="member-active-team">{{.TeamName}}</div>
+        <div class="member-active-date">{{.Date.Format "02.01.2006 о 15:04"}}</div>
+    </div>
+    <a href="/retros/{{.ID}}/board" class="btn btn-primary">Приєднатись</a>
+</div>
+{{end}}
+{{end}}
+
+{{if and .Active .Past}}
+<p class="section-label">Минулі</p>
+{{end}}
+
+{{if .Past}}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Команда</th>
+            <th>Статус</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .Past}}
+        <tr>
+            <td><a href="/retros/{{.ID}}/board">{{.Date.Format "02.01.2006 15:04"}}</a></td>
+            <td>{{.TeamName}}</td>
+            <td><span class="badge badge-finished">Завершено</span></td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{end}}
+
+{{if and (not .Active) (not .Past)}}
+<p class="text-muted empty-state">Тебе ще не запросили до жодного ретро.</p>
+{{end}}
+{{end}}

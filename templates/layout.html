@@ -1,0 +1,47 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="{{if .CurrentLang}}{{.CurrentLang}}{{else}}uk{{end}}" data-theme="{{if .CurrentTheme}}{{.CurrentTheme}}{{else}}dark{{end}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postup</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+</head>
+<body {{block "body-data" .}}{{end}}>
+    <nav class="nav">
+        <a href="/" class="nav-logo">
+            <img src="/static/logo-text.svg" height="32" alt="Postup">
+        </a>
+        {{if .CurrentUser}}
+        <div class="nav-links">
+            {{if .CurrentUser.IsAdmin}}
+            <a class="nav-link" href="/">{{t "nav.retros"}}</a>
+            <a class="nav-link" href="/teams">{{t "nav.teams"}}</a>
+            <a class="nav-link" href="/users">{{t "nav.users"}}</a>
+            <a class="nav-link" href="/templates">{{t "nav.templates"}}</a>
+            {{else}}
+            <a class="nav-link" href="/dashboard">{{t "nav.retros"}}</a>
+            {{end}}
+        </div>
+        <div class="nav-user-wrap">
+            <button class="nav-user-btn" id="nav-user-btn" type="button">
+                {{.CurrentUser.FirstName}} {{.CurrentUser.LastName}} ▾
+            </button>
+            <div class="nav-dropdown" id="nav-dropdown">
+                <a class="nav-dropdown-item" href="/settings">{{t "nav.settings"}}</a>
+                {{if .CurrentUser.IsAdmin}}
+                <a class="nav-dropdown-item" href="/timer">{{t "nav.timer"}}</a>
+                {{end}}
+                <a class="nav-dropdown-item nav-dropdown-item--danger" href="/logout">{{t "nav.logout"}}</a>
+            </div>
+        </div>
+        {{end}}
+    </nav>
+    <main class="main">
+        {{block "content" .}}{{end}}
+    </main>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
+{{end}}

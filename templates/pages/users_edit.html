@@ -1,0 +1,45 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Редагувати користувача</h1>
+    <a href="/users" class="btn">← Назад</a>
+</div>
+
+{{template "form_error" .Error}}
+
+<div class="user-form">
+    <div class="form-group">
+        <label>Email</label>
+        <p class="readonly-value">{{.User.Email}}</p>
+    </div>
+
+    <form method="POST" action="/users/{{.User.ID}}">
+        <div class="form-group">
+            <label for="first_name">Імʼя</label>
+            <input type="text" id="first_name" name="first_name" value="{{.User.FirstName}}" required autofocus>
+        </div>
+        <div class="form-group">
+            <label for="last_name">Прізвище</label>
+            <input type="text" id="last_name" name="last_name" value="{{.User.LastName}}" required>
+        </div>
+        {{if .Teams}}
+        <div class="form-group">
+            <label for="team_ids">Команди</label>
+            <select id="team_ids" name="team_ids" multiple size="{{len .Teams}}">
+                {{range .Teams}}
+                <option value="{{.ID}}"{{if index $.UserTeamIDs .ID}} selected{{end}}>{{.Name}}</option>
+                {{end}}
+            </select>
+            <span class="field-hint">Утримуй Ctrl / Cmd для вибору кількох команд</span>
+        </div>
+        {{end}}
+        <button type="submit" class="btn btn-primary">Зберегти</button>
+    </form>
+
+    <hr class="divider">
+
+    <form method="POST" action="/users/{{.User.ID}}/reset-password">
+        <p class="text-muted">Згенерує нове посилання для скидання пароля і покаже його у списку.</p>
+        <button type="submit" class="btn">Скинути пароль</button>
+    </form>
+</div>
+{{end}}

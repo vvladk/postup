@@ -1,0 +1,9 @@
+<svg width="160" height="52" viewBox="0 0 160 52" xmlns="http://www.w3.org/2000/svg">
+  <rect width="160" height="52" rx="10" fill="#0f1117"/>
+  <g transform="translate(16,26)">
+    <path d="M0,0 C0,-5 4,-8 7,-6 C10,-4 10,1 7,5 C4,9 -2,9 -6,5 C-10,1 -10,-5 -6,-9 C-2,-13 4,-13 8,-9 C13,-5 15,1 13,7 C11,13 5,16 -1,15 C-8,14 -14,8 -15,1" fill="none" stroke="#6c6fff" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="8" cy="-9" r="2.2" fill="#2dd4a0"/>
+    <circle cx="-15" cy="1" r="2" fill="#6c6fff"/>
+  </g>
+  <text x="42" y="31" font-family="'DM Sans', sans-serif" font-size="15" font-weight="700" fill="#f0f0f0" letter-spacing="2">POSTUP</text>
+</svg>

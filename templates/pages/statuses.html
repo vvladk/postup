@@ -1,0 +1,62 @@
+{{define "content"}}
+<div class="page-header">
+    <h1>Статуси action items</h1>
+</div>
+
+{{if .Flash}}
+<div class="success">{{.Flash}}</div>
+{{end}}
+{{if .FlashError}}
+<div class="error">{{.FlashError}}</div>
+{{end}}
+
+{{if .Statuses}}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Назва</th>
+            <th>Дефолт</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{$editID := .EditID}}
+        {{range .Statuses}}
+        <tr>
+            {{if eq .ID $editID}}
+            <td colspan="3">
+                <form method="POST" action="/statuses/{{.ID}}" style="display:flex;align-items:center;gap:0.5rem">
+                    <input type="text" name="name" value="{{.Name}}" required autofocus style="max-width:20rem">
+                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                    <a href="/statuses" class="btn">Скасувати</a>
+                </form>
+            </td>
+            {{else}}
+            <td>{{.Name}}</td>
+            <td>{{if .IsDefault}}<span class="badge badge-active">✓ Дефолт</span>{{end}}</td>
+            <td class="actions">
+                <a href="/statuses?edit={{.ID}}">Редагувати</a>
+                {{if not .IsDefault}}
+                <form method="POST" action="/statuses/{{.ID}}/delete" style="display:inline"
+                      onsubmit="return confirm('Видалити статус «{{.Name}}»?')">
+                    <button type="submit" class="btn-link btn-link-danger">Видалити</button>
+                </form>
+                {{end}}
+            </td>
+            {{end}}
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{else}}
+<p class="text-muted empty-state">Статусів ще немає.</p>
+{{end}}
+
+<div style="margin-top:2rem">
+    <h3 style="margin-bottom:0.75rem">Додати статус</h3>
+    <form method="POST" action="/statuses" style="display:flex;align-items:center;gap:0.5rem">
+        <input type="text" name="name" placeholder="Назва нового статусу" required style="max-width:20rem">
+        <button type="submit" class="btn btn-primary">Додати</button>
+    </form>
+</div>
+{{end}}
