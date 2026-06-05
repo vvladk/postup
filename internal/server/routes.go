@@ -47,7 +47,7 @@ func (a *App) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /forgot-password", handlers.HandleForgotPost(a.DB, r, a.Cfg.Port, a.Cfg.GetIP))
 	mux.HandleFunc("GET /reset-password/{token}", handlers.HandleResetGet(a.DB, r))
 	mux.HandleFunc("POST /reset-password/{token}", handlers.HandleResetPost(a.DB, r))
-	mux.Handle("GET /users", auth.RequireAdmin(handlers.HandleUsersIndex(a.DB, r)))
+	mux.Handle("GET /users", auth.RequireAdmin(handlers.HandleUsersIndex(a.DB, r, a.Cfg.Port, a.Cfg.GetIP)))
 	mux.Handle("GET /users/new", auth.RequireAdmin(handlers.HandleUsersNew(a.DB, r)))
 	mux.Handle("POST /users", auth.RequireAdmin(handlers.HandleUsersCreate(a.DB, r, a.Cfg.Port, a.Cfg.GetIP)))
 	mux.Handle("GET /users/{id}/edit", auth.RequireAdmin(handlers.HandleUsersEdit(a.DB, r)))

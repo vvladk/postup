@@ -446,7 +446,7 @@ func TestHandleUsersIndexActiveStatus(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/users", nil)
 	rr := httptest.NewRecorder()
-	handlers.HandleUsersIndex(database, re)(rr, req)
+	handlers.HandleUsersIndex(database, re, "8080", func() string { return "127.0.0.1" })(rr, req)
 
 	body := rr.Body.String()
 	if !strings.Contains(body, "admin@example.com:true") {
@@ -518,7 +518,7 @@ func TestHandleUsersIndexFilterByTeam(t *testing.T) {
 
 	req := httptest.NewRequest("GET", fmt.Sprintf("/users?team_id=%d", team1ID), nil)
 	rr := httptest.NewRecorder()
-	handlers.HandleUsersIndex(database, re)(rr, req)
+	handlers.HandleUsersIndex(database, re, "8080", func() string { return "127.0.0.1" })(rr, req)
 
 	bodyStr := rr.Body.String()
 	if !strings.Contains(bodyStr, "alice@example.com") {

@@ -72,6 +72,9 @@
             </td>
             <td class="actions">
                 <a href="/users/{{.ID}}/edit">Редагувати</a>
+                {{if .InviteLink}}
+                <button type="button" class="btn-link" onclick="copyToClipboard('{{.InviteLink}}', this)">Скопіювати інвайт</button>
+                {{end}}
                 <form method="POST" action="/users/{{.ID}}/reset-password" style="display:inline">
                     <button type="submit" class="btn-link">Скинути пароль</button>
                 </form>

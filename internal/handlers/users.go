@@ -15,14 +15,15 @@ import (
 )
 
 type userListItem struct {
-	ID        int64
-	Email     string
-	FirstName string
-	LastName  string
-	Role      string
-	Active    bool
-	TeamNames string
-	CreatedAt time.Time
+	ID         int64
+	Email      string
+	FirstName  string
+	LastName   string
+	Role       string
+	Active     bool
+	TeamNames  string
+	InviteLink string
+	CreatedAt  time.Time
 }
 
 type teamItem struct {
@@ -30,7 +31,7 @@ type teamItem struct {
 	Name string
 }
 
-func HandleUsersIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
+func HandleUsersIndex(db *sql.DB, re *Renderer, port string, getIP func() string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		search := r.URL.Query().Get("search")
 		teamIDStr := r.URL.Query().Get("team_id")
@@ -38,7 +39,7 @@ func HandleUsersIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
 
 		query := `
 			SELECT u.id, u.email, u.first_name, u.last_name, u.role,
-			       u.invite_used_at, u.password_hash, u.created_at,
+			       u.invite_used_at, u.password_hash, u.invite_token, u.created_at,
 			       (SELECT GROUP_CONCAT(t.name, ', ')
 			        FROM team_members tm
 			        JOIN teams t ON tm.team_id = t.id
@@ -68,15 +69,18 @@ func HandleUsersIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
 		var users []userListItem
 		for rows.Next() {
 			var item userListItem
-			var inviteUsedAt, passwordHash, createdAt, teamNames sql.NullString
+			var inviteUsedAt, passwordHash, inviteToken, createdAt, teamNames sql.NullString
 			if err := rows.Scan(
 				&item.ID, &item.Email, &item.FirstName, &item.LastName, &item.Role,
-				&inviteUsedAt, &passwordHash, &createdAt, &teamNames,
+				&inviteUsedAt, &passwordHash, &inviteToken, &createdAt, &teamNames,
 			); err != nil {
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
 			item.Active = passwordHash.String != ""
+			if inviteToken.Valid && inviteToken.String != "" {
+				item.InviteLink = fmt.Sprintf("http://%s:%s/invite/%s", getIP(), port, inviteToken.String)
+			}
 			item.TeamNames = teamNames.String
 			item.CreatedAt, _ = time.Parse(time.RFC3339, createdAt.String)
 			users = append(users, item)
