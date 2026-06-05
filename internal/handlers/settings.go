@@ -18,11 +18,13 @@ func HandleSettingsShow(db *sql.DB, re *Renderer) http.HandlerFunc {
 		}
 
 		saved := r.URL.Query().Get("saved") == "1"
+		restart := r.URL.Query().Get("restart") == "1"
 
 		re.Render(w, r, "settings.html", map[string]any{
 			"ManualIP": manualIP,
 			"Port":     port,
 			"Saved":    saved,
+			"Restart":  restart,
 		})
 	}
 }
@@ -48,8 +50,13 @@ func HandleSettingsUpdate(db *sql.DB) http.HandlerFunc {
 			if port == "" {
 				port = "8080"
 			}
+			currentPort := settingGet(db, "port")
 			settingSet(db, "manual_ip", manualIP)
 			settingSet(db, "port", port)
+			if port != currentPort {
+				http.Redirect(w, r, "/settings?saved=1&restart=1", http.StatusSeeOther)
+				return
+			}
 
 		case "personal":
 			lang := r.FormValue("lang")

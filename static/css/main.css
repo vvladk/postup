@@ -1,4 +1,6 @@
 :root {
+    color-scheme: dark;
+
     /* Backgrounds */
     --bg-primary:    #0f1117;
     --bg-secondary:  #161b22;
@@ -32,6 +34,8 @@
 }
 
 [data-theme="light"] {
+    color-scheme: light;
+
     --bg-primary:    #ffffff;
     --bg-secondary:  #f6f8fa;
     --bg-card:       #ffffff;
@@ -1070,6 +1074,44 @@ select[multiple] option:checked {
 .toast--success {
     background-color: rgba(45, 212, 160, 0.92);
     color: #0f1117;
+}
+
+.modal-overlay {
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.6);
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 1000;
+}
+
+.modal {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    max-width: 420px;
+    padding: 2rem;
+    width: 90%;
+}
+
+.modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem;
+}
+
+.modal-body {
+    color: var(--text-muted);
+    margin: 0 0 1.5rem;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
 }
 
 @keyframes toast-in {

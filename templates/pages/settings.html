@@ -7,6 +7,18 @@
 <div class="success">{{t "settings.saved"}}</div>
 {{end}}
 
+{{if .Restart}}
+<div class="modal-overlay" id="restart-modal">
+    <div class="modal">
+        <h2 class="modal-title">Потрібен перезапуск</h2>
+        <p class="modal-body">Порт змінено. Щоб зміни вступили в дію — перезапустіть сервер.</p>
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="document.getElementById('restart-modal').remove()">Зрозуміло</button>
+        </div>
+    </div>
+</div>
+{{end}}
+
 {{if .CurrentUser.IsAdmin}}
 <section class="settings-section">
     <p class="section-label">{{t "settings.system"}}</p>
