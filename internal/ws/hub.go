@@ -69,9 +69,6 @@ func (h *Hub) Run() {
 			h.mu.RUnlock()
 
 			for client := range room {
-				if client.UserID == msg.SenderID {
-					continue
-				}
 				select {
 				case client.Send <- data:
 				default:

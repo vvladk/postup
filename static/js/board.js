@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     initCardDragDrop();
     initCardContextMenu();
+    initAddCardForms();
     initVoting();
     initActionItems();
 });
@@ -83,6 +84,44 @@ async function moveCard(cardId, columnId) {
     } catch (_) {
         showToast('Помилка. Спробуй ще раз.');
     }
+}
+
+// ─── Add card form ────────────────────────────────────────────────────────────
+
+function initAddCardForms() {
+    const retroId = document.body.dataset.retroId;
+    document.querySelectorAll('.board-add-card-form').forEach(function (form) {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const textarea = form.querySelector('.board-add-card-input');
+            const content = textarea.value.trim();
+            if (!content) return;
+
+            const columnId = parseInt(form.dataset.columnId, 10);
+            try {
+                const resp = await fetch('/retros/' + retroId + '/cards', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ column_id: columnId, content: content }),
+                });
+                if (!resp.ok) {
+                    showToast('Помилка. Спробуй ще раз.');
+                    return;
+                }
+                const data = await resp.json();
+                textarea.value = '';
+                handleCardCreated({
+                    id: data.id,
+                    content: data.content,
+                    author_name: data.author,
+                    author_id: parseInt(document.body.dataset.currentUserId, 10),
+                    column_id: columnId,
+                });
+            } catch (_) {
+                showToast('Помилка. Спробуй ще раз.');
+            }
+        });
+    });
 }
 
 // ─── Context menu ─────────────────────────────────────────────────────────────
