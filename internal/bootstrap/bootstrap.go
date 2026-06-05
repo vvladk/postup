@@ -60,6 +60,8 @@ func runInitDialog(db *sql.DB, in io.Reader, readPwd func() ([]byte, error)) err
 	}
 
 	email := promptEmail(scanner)
+	firstName := promptOptionalString(scanner, "First name (optional): ")
+	lastName := promptOptionalString(scanner, "Last name (optional): ")
 	password := promptPasswordWithConfirm(readPwd)
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
@@ -69,8 +71,8 @@ func runInitDialog(db *sql.DB, in io.Reader, readPwd func() ([]byte, error)) err
 
 	now := time.Now().UTC().Format(time.RFC3339)
 	if _, err := db.Exec(
-		`INSERT INTO users (email, password_hash, role, created_at, updated_at) VALUES (?, ?, 'admin', ?, ?)`,
-		email, string(hash), now, now,
+		`INSERT INTO users (email, password_hash, first_name, last_name, role, created_at, updated_at) VALUES (?, ?, ?, ?, 'admin', ?, ?)`,
+		email, string(hash), firstName, lastName, now, now,
 	); err != nil {
 		return fmt.Errorf("create admin: %w", err)
 	}
@@ -103,6 +105,14 @@ func runResetDialog(db *sql.DB, readPwd func() ([]byte, error)) error {
 
 	fmt.Println("Password updated.")
 	return nil
+}
+
+func promptOptionalString(scanner *bufio.Scanner, label string) string {
+	fmt.Print(label)
+	if scanner.Scan() {
+		return strings.TrimSpace(scanner.Text())
+	}
+	return ""
 }
 
 func promptEmail(scanner *bufio.Scanner) string {

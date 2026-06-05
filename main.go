@@ -24,11 +24,6 @@ func main() {
 	doReset := flag.Bool("reset", false, "Reset admin password")
 	flag.Parse()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
 	exe, err := os.Executable()
 	if err != nil {
 		log.Fatal(err)
@@ -51,6 +46,9 @@ func main() {
 	if err := bootstrap.Bootstrap(database); err != nil {
 		log.Fatal(err)
 	}
+
+	port := "8080"
+	database.QueryRow(`SELECT value FROM settings WHERE key = 'port'`).Scan(&port)
 
 	scheduler.StartArchiveScheduler(database)
 

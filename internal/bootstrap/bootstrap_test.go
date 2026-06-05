@@ -41,7 +41,7 @@ func TestBootstrapNoAdmin(t *testing.T) {
 
 	oldReader := dialogReader
 	oldPwd := dialogPwd
-	dialogReader = strings.NewReader("y\nadmin@test.com\n")
+	dialogReader = strings.NewReader("y\nadmin@test.com\nJohn\nDoe\n")
 	dialogPwd = func() ([]byte, error) { return []byte("testpass1"), nil }
 	defer func() {
 		dialogReader = oldReader
@@ -52,14 +52,20 @@ func TestBootstrapNoAdmin(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	var email, role string
+	var email, role, firstName, lastName string
 	if err := database.QueryRow(
-		`SELECT email, role FROM users WHERE role = 'admin'`,
-	).Scan(&email, &role); err != nil {
+		`SELECT email, role, first_name, last_name FROM users WHERE role = 'admin'`,
+	).Scan(&email, &role, &firstName, &lastName); err != nil {
 		t.Fatalf("admin not found after Bootstrap: %v", err)
 	}
 	if email != "admin@test.com" {
 		t.Errorf("expected admin@test.com, got %s", email)
+	}
+	if firstName != "John" {
+		t.Errorf("expected first_name=John, got %q", firstName)
+	}
+	if lastName != "Doe" {
+		t.Errorf("expected last_name=Doe, got %q", lastName)
 	}
 }
 

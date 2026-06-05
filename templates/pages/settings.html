@@ -22,6 +22,7 @@
         <div class="form-group">
             <label for="port">{{t "settings.port"}}</label>
             <input type="number" id="port" name="port" value="{{.Port}}" min="1" max="65535" style="width:8rem">
+            <span class="field-hint">{{t "settings.port_hint"}}</span>
         </div>
         <button type="submit" class="btn btn-primary">{{t "settings.save_system"}}</button>
     </form>
