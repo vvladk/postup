@@ -327,14 +327,6 @@ func HandleUsersDelete(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		currentUser := middleware.GetUser(r)
-		if currentUser != nil && currentUser.ID == userID {
-			v := url.Values{}
-			v.Set("error", "Не можна видалити власний акаунт")
-			http.Redirect(w, r, "/users?"+v.Encode(), http.StatusSeeOther)
-			return
-		}
-
 		var openCount int
 		err = db.QueryRow(`
 			SELECT COUNT(*) FROM action_items ai
@@ -354,6 +346,19 @@ func HandleUsersDelete(db *sql.DB) http.HandlerFunc {
 
 		if _, err := db.Exec(`DELETE FROM users WHERE id = ?`, userID); err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		currentUser := middleware.GetUser(r)
+		if currentUser != nil && currentUser.ID == userID {
+			http.SetCookie(w, &http.Cookie{
+				Name:     "session_id",
+				Value:    "",
+				MaxAge:   -1,
+				Path:     "/",
+				HttpOnly: true,
+			})
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 

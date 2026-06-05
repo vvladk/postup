@@ -479,14 +479,25 @@ func TestHandleUsersDeleteSelf(t *testing.T) {
 	if rr.Code != http.StatusSeeOther {
 		t.Errorf("expected 302, got %d", rr.Code)
 	}
-	if !strings.Contains(rr.Header().Get("Location"), "error=") {
-		t.Errorf("expected error param in redirect, got: %s", rr.Header().Get("Location"))
+	if rr.Header().Get("Location") != "/login" {
+		t.Errorf("expected redirect to /login after self-delete, got: %s", rr.Header().Get("Location"))
 	}
 
 	var count int
 	database.QueryRow(`SELECT COUNT(*) FROM users WHERE id = ?`, adminID).Scan(&count)
-	if count != 1 {
-		t.Errorf("expected admin to remain in DB (self-delete blocked), got count=%d", count)
+	if count != 0 {
+		t.Errorf("expected admin to be deleted, got count=%d", count)
+	}
+
+	// cookie must be cleared
+	var cookieCleared bool
+	for _, c := range rr.Result().Cookies() {
+		if c.Name == "session_id" && c.MaxAge < 0 {
+			cookieCleared = true
+		}
+	}
+	if !cookieCleared {
+		t.Error("expected session_id cookie to be cleared")
 	}
 }
 
