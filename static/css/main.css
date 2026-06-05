@@ -327,6 +327,11 @@ select:focus {
     color: var(--text-muted);
 }
 
+.badge-admin {
+    background-color: rgba(108, 111, 255, 0.15);
+    color: var(--accent-purple);
+}
+
 .badge-status {
     border-radius: 2rem;
     display: inline-block;

@@ -61,6 +61,9 @@
                 {{if .TeamNames}}{{.TeamNames}}{{else}}<span class="text-muted">—</span>{{end}}
             </td>
             <td>
+                {{if eq .Role "admin"}}
+                <span class="badge badge-admin">Адмін</span>
+                {{end}}
                 {{if .Active}}
                 <span class="badge badge-active">Активний</span>
                 {{else}}

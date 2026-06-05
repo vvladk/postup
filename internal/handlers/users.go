@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/postup-app/postup/internal/middleware"
 )
 
 type userListItem struct {
@@ -36,7 +38,7 @@ func HandleUsersIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
 
 		query := `
 			SELECT u.id, u.email, u.first_name, u.last_name, u.role,
-			       u.invite_used_at, u.created_at,
+			       u.invite_used_at, u.password_hash, u.created_at,
 			       (SELECT GROUP_CONCAT(t.name, ', ')
 			        FROM team_members tm
 			        JOIN teams t ON tm.team_id = t.id
@@ -66,15 +68,15 @@ func HandleUsersIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
 		var users []userListItem
 		for rows.Next() {
 			var item userListItem
-			var inviteUsedAt, createdAt, teamNames sql.NullString
+			var inviteUsedAt, passwordHash, createdAt, teamNames sql.NullString
 			if err := rows.Scan(
 				&item.ID, &item.Email, &item.FirstName, &item.LastName, &item.Role,
-				&inviteUsedAt, &createdAt, &teamNames,
+				&inviteUsedAt, &passwordHash, &createdAt, &teamNames,
 			); err != nil {
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
-			item.Active = inviteUsedAt.Valid
+			item.Active = passwordHash.String != ""
 			item.TeamNames = teamNames.String
 			item.CreatedAt, _ = time.Parse(time.RFC3339, createdAt.String)
 			users = append(users, item)
@@ -322,6 +324,14 @@ func HandleUsersDelete(db *sql.DB) http.HandlerFunc {
 		userID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			http.NotFound(w, r)
+			return
+		}
+
+		currentUser := middleware.GetUser(r)
+		if currentUser != nil && currentUser.ID == userID {
+			v := url.Values{}
+			v.Set("error", "Не можна видалити власний акаунт")
+			http.Redirect(w, r, "/users?"+v.Encode(), http.StatusSeeOther)
 			return
 		}
 
