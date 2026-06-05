@@ -807,6 +807,33 @@ select[multiple] option:checked {
     word-break: break-word;
 }
 
+.board-card-vote-btn {
+    align-items: center;
+    align-self: flex-start;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 2rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    gap: 0.25rem;
+    padding: 0.2rem 0.6rem;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.board-card-vote-btn:hover {
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
+}
+
+.board-card-vote-btn--voted {
+    background-color: rgba(108, 111, 255, 0.15);
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
+}
+
 .board-card-footer {
     align-items: center;
     display: flex;

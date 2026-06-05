@@ -1,4 +1,4 @@
-{{define "body-data"}}data-current-user-id="{{.CurrentUserID}}" data-retro-id="{{.Retro.ID}}" data-retro-active="{{if .IsActive}}true{{else}}false{{end}}" data-vote-limit="{{.Retro.VoteLimit}}"{{end}}
+{{define "body-data"}}data-current-user-id="{{.CurrentUserID}}" data-retro-id="{{.Retro.ID}}" data-retro-active="{{if .IsActive}}true{{else}}false{{end}}" data-vote-limit="{{.Retro.VoteLimit}}" data-is-admin="{{if .IsAdmin}}true{{else}}false{{end}}"{{end}}
 
 {{define "content"}}
 <div class="board-header">
@@ -39,7 +39,7 @@
             <div class="board-card"
                  data-card-id="{{.ID}}"
                  data-author-id="{{.AuthorID}}"
-                 {{if eq .AuthorID $.CurrentUserID}}draggable="true"{{end}}>
+                 {{if or (eq .AuthorID $.CurrentUserID) $.IsAdmin}}draggable="true"{{end}}>
                 <div class="board-card-content">{{.Content}}</div>
                 {{if $.IsActive}}
                 <button class="board-card-vote-btn{{if gt (index $.MyVotes .ID) 0}} board-card-vote-btn--voted{{end}}"

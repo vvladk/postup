@@ -72,6 +72,7 @@ func (a *App) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /cards/{id}/delete", auth.RequireAuth(handlers.HandleCardsDelete(a.DB, a.Hub)))
 	mux.Handle("POST /cards/{id}/move", auth.RequireAuth(handlers.HandleCardsMoveColumn(a.DB, a.Hub)))
 	mux.Handle("POST /cards/{id}/copy", auth.RequireAuth(handlers.HandleCardsCopy(a.DB)))
+	mux.Handle("POST /cards/{id}/to-action-item", auth.RequireAuth(handlers.HandleCardsToActionItem(a.DB, a.Hub)))
 	mux.Handle("POST /cards/{id}/vote", auth.RequireAuth(handlers.HandleCardsVote(a.DB, a.Hub)))
 	mux.Handle("POST /retros/{id}/action-items", auth.RequireAuth(handlers.HandleActionItemsCreate(a.DB, a.Hub)))
 	mux.Handle("POST /action-items/{id}/status", auth.RequireAuth(handlers.HandleActionItemsUpdateStatus(a.DB, a.Hub)))

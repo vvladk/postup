@@ -165,7 +165,7 @@ func insertTemplateColumns(db *sql.DB, templateID int64, regularColumns []string
 	}
 	lastPos := len(regularColumns) + 1
 	if _, err := db.Exec(
-		`INSERT INTO template_columns (template_id, title, position, type) VALUES (?, 'Нові дії', ?, 'fixed_last')`,
+		`INSERT INTO template_columns (template_id, title, position, type) VALUES (?, 'Action Items', ?, 'fixed_last')`,
 		templateID, lastPos,
 	); err != nil {
 		return err

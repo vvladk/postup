@@ -240,6 +240,7 @@ func HandleBoardShow(db *sql.DB, re *Renderer) http.HandlerFunc {
 			"Statuses":            statuses,
 			"StatusesJSON":        template.JS(statusesJSON),
 			"CurrentUserID":       user.ID,
+			"IsAdmin":             user.IsAdmin(),
 			"IsActive":            retro.IsActive(),
 			"VotesByCard":         votesByCard,
 			"MyVotes":             myVotes,
@@ -821,6 +822,100 @@ func HandleActionItemsCreate(db *sql.DB, hub *ws.Hub) http.HandlerFunc {
 			return
 		}
 		http.Redirect(w, r, fmt.Sprintf("/retros/%d/board", retroID), http.StatusSeeOther)
+	}
+}
+
+func HandleCardsToActionItem(db *sql.DB, hub *ws.Hub) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cardID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		user := middleware.GetUser(r)
+		if !user.IsAdmin() {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		card, err := loadCardByID(db, cardID)
+		if err == sql.ErrNoRows {
+			http.NotFound(w, r)
+			return
+		}
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		if !isRetroMember(db, card.RetroID, user.ID) {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		var dateStr, status string
+		if err := db.QueryRow(`SELECT date, status FROM retros WHERE id = ?`, card.RetroID).
+			Scan(&dateStr, &status); err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		retroDate, _ := time.Parse(time.RFC3339, dateStr)
+		if !(&boardRetro{Status: status, Date: retroDate}).IsActive() {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		var columnID int64
+		if err := db.QueryRow(`
+			SELECT tc.id FROM template_columns tc
+			JOIN retros r ON r.template_id = tc.template_id
+			WHERE r.id = ? AND tc.type = 'fixed_last'
+			LIMIT 1`, card.RetroID).Scan(&columnID); err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		var defaultStatusID int64
+		if err := db.QueryRow(`SELECT id FROM action_statuses WHERE is_default = 1 LIMIT 1`).
+			Scan(&defaultStatusID); err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		var statusName string
+		db.QueryRow(`SELECT name FROM action_statuses WHERE id = ?`, defaultStatusID).Scan(&statusName)
+
+		now := time.Now().UTC().Format(time.RFC3339)
+		res, err := db.Exec(
+			`INSERT INTO action_items (retro_id, column_id, assignee_id, content, deadline, status_id, created_at) VALUES (?, ?, NULL, ?, NULL, ?, ?)`,
+			card.RetroID, columnID, card.Content, defaultStatusID, now,
+		)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		itemID, _ := res.LastInsertId()
+
+		payload := map[string]any{
+			"id":                  itemID,
+			"retro_id":            card.RetroID,
+			"column_id":           columnID,
+			"content":             card.Content,
+			"assignee_id":         nil,
+			"assignee_first_name": "",
+			"assignee_last_name":  "",
+			"deadline":            "",
+			"status_id":           defaultStatusID,
+			"status_name":         statusName,
+		}
+
+		if hub != nil {
+			hub.Broadcast(card.RetroID, user.ID, "action_item_created", payload)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"ok": true, "item": payload})
 	}
 }
 

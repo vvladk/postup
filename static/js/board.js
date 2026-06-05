@@ -47,7 +47,12 @@ function initCardDragDrop() {
             col.classList.remove('drop-target');
             const cardId = e.dataTransfer.getData('text/plain');
             const columnId = col.dataset.columnId;
-            if (cardId && columnId) {
+            if (!cardId || !columnId) return;
+            const isAdmin = document.body.dataset.isAdmin === 'true';
+            const isLastColumn = col.dataset.columnType === 'fixed_last';
+            if (isAdmin && isLastColumn) {
+                convertCardToActionItem(cardId);
+            } else {
                 moveCard(cardId, columnId);
             }
         });
@@ -277,6 +282,28 @@ async function deleteCard(cardId, cardEl) {
     }
 }
 
+// ─── Convert card to action item ─────────────────────────────────────────────
+
+async function convertCardToActionItem(cardId) {
+    try {
+        const resp = await fetch('/cards/' + cardId + '/to-action-item', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+        });
+        if (!resp.ok) {
+            showToast('Помилка. Спробуй ще раз.');
+            return;
+        }
+        const data = await resp.json();
+        if (data.ok && data.item) {
+            appendActionItem(data.item, data.item.column_id);
+            updateColumnCount(data.item.column_id, 1);
+        }
+    } catch (_) {
+        showToast('Помилка. Спробуй ще раз.');
+    }
+}
+
 // ─── Copy to next retro ───────────────────────────────────────────────────────
 
 async function copyCard(cardId) {
@@ -400,18 +427,27 @@ function initWebSocket(retroID) {
     };
 }
 
+function updateColumnCount(columnId, delta) {
+    const col = document.querySelector('.board-column[data-column-id="' + columnId + '"]');
+    if (!col) return;
+    const badge = col.querySelector('.board-column-count');
+    if (!badge) return;
+    badge.textContent = Math.max(0, (parseInt(badge.textContent, 10) || 0) + delta);
+}
+
 function handleCardCreated(payload) {
     if (document.querySelector('.board-card[data-card-id="' + payload.id + '"]')) return;
 
     const currentUserID = parseInt(document.body.dataset.currentUserId, 10);
     const isAuthor = parseInt(payload.author_id, 10) === currentUserID;
+    const isAdmin = document.body.dataset.isAdmin === 'true';
     const isActive = document.body.dataset.retroActive === 'true';
 
     const cardEl = document.createElement('div');
     cardEl.className = 'board-card';
     cardEl.dataset.cardId = payload.id;
     cardEl.dataset.authorId = payload.author_id;
-    if (isAuthor) cardEl.setAttribute('draggable', 'true');
+    if (isAuthor || isAdmin) cardEl.setAttribute('draggable', 'true');
 
     const contentEl = document.createElement('div');
     contentEl.className = 'board-card-content';
@@ -439,12 +475,15 @@ function handleCardCreated(payload) {
     if (isActive) cardEl.appendChild(createVoteBtn(payload.id, 0, false));
     cardEl.appendChild(footerEl);
 
-    if (isAuthor) attachDragListeners(cardEl);
+    if (isAuthor || isAdmin) attachDragListeners(cardEl);
 
     const columnCards = document.querySelector(
         '.board-column[data-column-id="' + payload.column_id + '"] .board-column-cards'
     );
-    if (columnCards) columnCards.appendChild(cardEl);
+    if (columnCards) {
+        columnCards.appendChild(cardEl);
+        updateColumnCount(payload.column_id, 1);
+    }
 }
 
 function handleCardUpdated(payload) {
@@ -456,7 +495,11 @@ function handleCardUpdated(payload) {
 
 function handleCardDeleted(payload) {
     const cardEl = document.querySelector('.board-card[data-card-id="' + payload.id + '"]');
-    if (cardEl) cardEl.remove();
+    if (cardEl) {
+        const col = cardEl.closest('.board-column');
+        if (col) updateColumnCount(col.dataset.columnId, -1);
+        cardEl.remove();
+    }
 }
 
 function handleCardMoved(payload) {
@@ -464,7 +507,12 @@ function handleCardMoved(payload) {
     const targetCards = document.querySelector(
         '.board-column[data-column-id="' + payload.column_id + '"] .board-column-cards'
     );
-    if (cardEl && targetCards) targetCards.appendChild(cardEl);
+    if (cardEl && targetCards) {
+        const oldCol = cardEl.closest('.board-column');
+        if (oldCol) updateColumnCount(oldCol.dataset.columnId, -1);
+        targetCards.appendChild(cardEl);
+        updateColumnCount(payload.column_id, 1);
+    }
 }
 
 function handleVoteUpdated(payload) {
@@ -574,12 +622,17 @@ function buildActionItemEl(item) {
 
     const assigneeEl = document.createElement('span');
     assigneeEl.className = 'action-item-assignee';
-    assigneeEl.textContent = '👤 ' + item.assignee_first_name + ' ' + item.assignee_last_name;
+    const assigneeName = ((item.assignee_first_name || '') + ' ' + (item.assignee_last_name || '')).trim();
+    assigneeEl.textContent = '👤 ' + (assigneeName || '—');
 
     const deadlineEl = document.createElement('span');
     deadlineEl.className = 'action-item-deadline';
-    const parts = (item.deadline || '').split('-');
-    deadlineEl.textContent = '📅 ' + (parts.length === 3 ? parts[2] + '.' + parts[1] + '.' + parts[0] : item.deadline);
+    if (item.deadline) {
+        const parts = item.deadline.split('-');
+        deadlineEl.textContent = '📅 ' + (parts.length === 3 ? parts[2] + '.' + parts[1] + '.' + parts[0] : item.deadline);
+    } else {
+        deadlineEl.textContent = '📅 —';
+    }
 
     metaEl.appendChild(assigneeEl);
     metaEl.appendChild(deadlineEl);
