@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"crypto/rand"
 	"database/sql"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,7 +11,6 @@ import (
 	"time"
 
 	"github.com/postup-app/postup/internal/middleware"
-	"github.com/postup-app/postup/internal/session"
 )
 
 type retroListItem struct {
@@ -47,11 +44,11 @@ func HandleRetrosPMIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
 
 		activeRows, err := db.Query(`
 			SELECT r.id, t.name, COALESCE(tmpl.name, ''), r.date, r.vote_limit, r.status,
-			       COUNT(rp.user_id)
+			       COUNT(tm.user_id)
 			FROM retros r
 			JOIN teams t ON t.id = r.team_id
 			LEFT JOIN templates tmpl ON tmpl.id = r.template_id
-			LEFT JOIN retro_participants rp ON rp.retro_id = r.id
+			LEFT JOIN team_members tm ON tm.team_id = r.team_id
 			WHERE r.status = 'active' AND r.date > ?
 			GROUP BY r.id
 			ORDER BY r.date ASC`, cutoff)
@@ -125,11 +122,11 @@ func HandleRetrosPMIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
 
 		query := fmt.Sprintf(`
 			SELECT r.id, t.name, COALESCE(tmpl.name, ''), r.date, r.vote_limit, r.status,
-			       COUNT(rp.user_id)
+			       COUNT(tm.user_id)
 			FROM retros r
 			JOIN teams t ON t.id = r.team_id
 			LEFT JOIN templates tmpl ON tmpl.id = r.template_id
-			LEFT JOIN retro_participants rp ON rp.retro_id = r.id
+			LEFT JOIN team_members tm ON tm.team_id = r.team_id
 			%s
 			GROUP BY r.id
 			ORDER BY r.date %s`, whereClause, orderDir)
@@ -200,8 +197,8 @@ func HandleRetrosMemberIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
 			SELECT r.id, t.name, r.date, r.status
 			FROM retros r
 			JOIN teams t ON t.id = r.team_id
-			JOIN retro_participants rp ON rp.retro_id = r.id
-			WHERE rp.user_id = ?
+			JOIN team_members tm ON tm.team_id = r.team_id
+			WHERE tm.user_id = ?
 			ORDER BY r.date DESC`, user.ID)
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -395,18 +392,11 @@ func HandleRetrosCreate(db *sql.DB, re *Renderer) http.HandlerFunc {
 			return
 		}
 
-		b := make([]byte, 32)
-		if _, err := rand.Read(b); err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-		inviteToken := hex.EncodeToString(b)
-
 		now := time.Now().UTC().Format(time.RFC3339)
 		res, err := db.Exec(
-			`INSERT INTO retros (team_id, template_id, date, vote_limit, status, invite_token, created_at)
-			 VALUES (?, ?, ?, ?, 'active', ?, ?)`,
-			teamID, templateID, retroDate.UTC().Format(time.RFC3339), voteLimit, inviteToken, now,
+			`INSERT INTO retros (team_id, template_id, date, vote_limit, status, created_at)
+			 VALUES (?, ?, ?, ?, 'active', ?)`,
+			teamID, templateID, retroDate.UTC().Format(time.RFC3339), voteLimit, now,
 		)
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -414,65 +404,7 @@ func HandleRetrosCreate(db *sql.DB, re *Renderer) http.HandlerFunc {
 		}
 
 		retroID, _ := res.LastInsertId()
-
-		memberRows, err := db.Query(`SELECT user_id FROM team_members WHERE team_id = ?`, teamID)
-		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-		var memberIDs []int64
-		for memberRows.Next() {
-			var uid int64
-			memberRows.Scan(&uid)
-			memberIDs = append(memberIDs, uid)
-		}
-		memberRows.Close()
-
-		for _, uid := range memberIDs {
-			db.Exec(`INSERT OR IGNORE INTO retro_participants (retro_id, user_id) VALUES (?, ?)`, retroID, uid)
-		}
-
-		http.Redirect(w, r, fmt.Sprintf("/retros/%d/invite-link", retroID), http.StatusSeeOther)
-	}
-}
-
-func HandleRetrosInvite(db *sql.DB, re *Renderer, port string, getIP func() string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		retroID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-		if err != nil {
-			http.NotFound(w, r)
-			return
-		}
-
-		var inviteToken sql.NullString
-		var teamName, dateStr string
-		err = db.QueryRow(`
-			SELECT r.invite_token, t.name, r.date
-			FROM retros r
-			JOIN teams t ON t.id = r.team_id
-			WHERE r.id = ?`, retroID).Scan(&inviteToken, &teamName, &dateStr)
-		if err == sql.ErrNoRows {
-			http.NotFound(w, r)
-			return
-		}
-		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-
-		inviteLink := ""
-		if inviteToken.Valid {
-			inviteLink = fmt.Sprintf("http://%s:%s/join/%s", getIP(), port, inviteToken.String)
-		}
-
-		retroDate, _ := time.Parse(time.RFC3339, dateStr)
-
-		re.Render(w, r, "retros_invite.html", map[string]any{
-			"RetroID":    retroID,
-			"TeamName":   teamName,
-			"Date":       retroDate,
-			"InviteLink": inviteLink,
-		})
+		http.Redirect(w, r, fmt.Sprintf("/retros/%d/board", retroID), http.StatusSeeOther)
 	}
 }
 
@@ -682,34 +614,3 @@ func transferActionItems(db *sql.DB, retroID int64) {
 	}
 }
 
-func HandleRetrosJoin(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		token := r.PathValue("token")
-
-		var retroID int64
-		err := db.QueryRow(`SELECT id FROM retros WHERE invite_token = ?`, token).Scan(&retroID)
-		if err == sql.ErrNoRows {
-			http.NotFound(w, r)
-			return
-		}
-		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-
-		cookie, err := r.Cookie("session_id")
-		if err != nil {
-			http.Redirect(w, r, "/login?next=/join/"+token, http.StatusSeeOther)
-			return
-		}
-		sess, err := session.Get(db, cookie.Value)
-		if err != nil {
-			http.Redirect(w, r, "/login?next=/join/"+token, http.StatusSeeOther)
-			return
-		}
-
-		db.Exec(`INSERT OR IGNORE INTO retro_participants (retro_id, user_id) VALUES (?, ?)`, retroID, sess.UserID)
-
-		http.Redirect(w, r, fmt.Sprintf("/retros/%d/board", retroID), http.StatusSeeOther)
-	}
-}

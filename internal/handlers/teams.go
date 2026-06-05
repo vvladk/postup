@@ -92,9 +92,16 @@ func HandleTeamsCreate(db *sql.DB, re *Renderer) http.HandlerFunc {
 		}
 
 		now := time.Now().UTC().Format(time.RFC3339)
-		if _, err := db.Exec(`INSERT INTO teams (name, created_at) VALUES (?, ?)`, name, now); err != nil {
+		res, err := db.Exec(`INSERT INTO teams (name, created_at) VALUES (?, ?)`, name, now)
+		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
+		}
+		teamID, _ := res.LastInsertId()
+
+		var adminID int64
+		if err := db.QueryRow(`SELECT id FROM users WHERE role = 'admin'`).Scan(&adminID); err == nil {
+			db.Exec(`INSERT OR IGNORE INTO team_members (team_id, user_id) VALUES (?, ?)`, teamID, adminID)
 		}
 
 		v := url.Values{}
@@ -225,6 +232,11 @@ func HandleTeamsUpdate(db *sql.DB, re *Renderer) http.HandlerFunc {
 				continue
 			}
 			db.Exec(`INSERT OR IGNORE INTO team_members (team_id, user_id) VALUES (?, ?)`, teamID, uid)
+		}
+
+		var adminID int64
+		if err := db.QueryRow(`SELECT id FROM users WHERE role = 'admin'`).Scan(&adminID); err == nil {
+			db.Exec(`INSERT OR IGNORE INTO team_members (team_id, user_id) VALUES (?, ?)`, teamID, adminID)
 		}
 
 		v := url.Values{}

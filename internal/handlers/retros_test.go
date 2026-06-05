@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/postup-app/postup/internal/handlers"
-	"github.com/postup-app/postup/internal/session"
 )
 
 func newRetrosRenderer() *handlers.Renderer {
@@ -22,9 +21,6 @@ func newRetrosRenderer() *handlers.Renderer {
 		},
 		"templates/pages/retros_new.html": {
 			Data: []byte(`{{define "content"}}{{if .Error}}{{.Error}}{{end}}<form></form>{{end}}`),
-		},
-		"templates/pages/retros_invite.html": {
-			Data: []byte(`{{define "content"}}{{.InviteLink}}{{end}}`),
 		},
 		"templates/pages/retros_edit.html": {
 			Data: []byte(`{{define "content"}}{{if .Error}}{{.Error}}{{end}}<form></form>{{end}}`),
@@ -45,17 +41,16 @@ func createTeamWithMembers(t *testing.T, database *sql.DB, teamName string, user
 	return teamID
 }
 
-func createRetroWithToken(t *testing.T, database *sql.DB, teamID int64, token string) int64 {
+func createRetro(t *testing.T, database *sql.DB, teamID int64) int64 {
 	t.Helper()
 	now := time.Now().UTC().Format(time.RFC3339)
 	future := time.Now().Add(24 * time.Hour).UTC().Format(time.RFC3339)
 	res, err := database.Exec(
-		`INSERT INTO retros (team_id, date, vote_limit, status, invite_token, created_at)
-		 VALUES (?, ?, 10, 'active', ?, ?)`,
-		teamID, future, token, now,
+		`INSERT INTO retros (team_id, date, vote_limit, status, created_at) VALUES (?, ?, 10, 'active', ?)`,
+		teamID, future, now,
 	)
 	if err != nil {
-		t.Fatalf("create retro with token: %v", err)
+		t.Fatalf("create retro: %v", err)
 	}
 	id, _ := res.LastInsertId()
 	return id
@@ -93,30 +88,16 @@ func TestHandleRetrosCreate_Valid(t *testing.T) {
 	}
 
 	var retroID int64
-	if _, err := fmt.Sscanf(rr.Header().Get("Location"), "/retros/%d/invite-link", &retroID); err != nil {
+	if _, err := fmt.Sscanf(rr.Header().Get("Location"), "/retros/%d/board", &retroID); err != nil {
 		t.Fatalf("parse retroID from location %q: %v", rr.Header().Get("Location"), err)
 	}
 
 	var status string
-	var inviteToken sql.NullString
-	if err := database.QueryRow(
-		`SELECT status, invite_token FROM retros WHERE id = ?`, retroID,
-	).Scan(&status, &inviteToken); err != nil {
+	if err := database.QueryRow(`SELECT status FROM retros WHERE id = ?`, retroID).Scan(&status); err != nil {
 		t.Fatalf("query retro: %v", err)
 	}
 	if status != "active" {
 		t.Errorf("expected status 'active', got %q", status)
-	}
-	if !inviteToken.Valid || inviteToken.String == "" {
-		t.Error("expected invite_token to be non-NULL and non-empty")
-	}
-
-	var count int
-	database.QueryRow(
-		`SELECT COUNT(*) FROM retro_participants WHERE retro_id = ?`, retroID,
-	).Scan(&count)
-	if count != 2 {
-		t.Errorf("expected 2 participants (all team members), got %d", count)
 	}
 }
 
@@ -219,101 +200,11 @@ func TestHandleRetrosCreate_NoTeam(t *testing.T) {
 	}
 }
 
-// Тест 6 — GET /retros/:id/invite
-func TestHandleRetrosInvite(t *testing.T) {
-	database := newTestDB(t)
-	teamID := createTestTeam(t, database, "Alpha")
-	inviteToken := "abc123testtoken456"
-	retroID := createRetroWithToken(t, database, teamID, inviteToken)
-
-	re := newRetrosRenderer()
-	mux := http.NewServeMux()
-	mux.Handle("GET /retros/{id}/invite-link", handlers.HandleRetrosInvite(
-		database, re, "8080", func() string { return "127.0.0.1" },
-	))
-
-	req := httptest.NewRequest("GET", fmt.Sprintf("/retros/%d/invite-link", retroID), nil)
-	rr := httptest.NewRecorder()
-	mux.ServeHTTP(rr, req)
-
-	if rr.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", rr.Code)
-	}
-	body := rr.Body.String()
-	if !strings.Contains(body, "/join/") {
-		t.Errorf("expected '/join/' in body, got: %s", body)
-	}
-	if !strings.Contains(body, inviteToken) {
-		t.Errorf("expected invite token %q in body, got: %s", inviteToken, body)
-	}
-}
-
-// Тест 7 — GET /retros/invite/:token авторизований user не в учасниках
-func TestHandleRetrosJoin_AuthorizedNotParticipant(t *testing.T) {
-	database := newTestDB(t)
-	teamID := createTestTeam(t, database, "Alpha")
-	userID := createTestMember(t, database, "member@example.com")
-	inviteToken := "join-token-xyz789"
-	retroID := createRetroWithToken(t, database, teamID, inviteToken)
-
-	var count int
-	database.QueryRow(
-		`SELECT COUNT(*) FROM retro_participants WHERE retro_id = ? AND user_id = ?`, retroID, userID,
-	).Scan(&count)
-	if count != 0 {
-		t.Fatalf("pre-condition: expected user not in participants, got count=%d", count)
-	}
-
-	sess, err := session.Create(database, userID)
-	if err != nil {
-		t.Fatalf("create session: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /join/{token}", handlers.HandleRetrosJoin(database))
-
-	req := httptest.NewRequest("GET", "/join/"+inviteToken, nil)
-	req.AddCookie(&http.Cookie{Name: "session_id", Value: sess.Token})
-	rr := httptest.NewRecorder()
-	mux.ServeHTTP(rr, req)
-
-	if rr.Code != http.StatusSeeOther {
-		t.Errorf("expected 302, got %d", rr.Code)
-	}
-	expectedLoc := fmt.Sprintf("/retros/%d/board", retroID)
-	if loc := rr.Header().Get("Location"); loc != expectedLoc {
-		t.Errorf("expected redirect to %q, got %q", expectedLoc, loc)
-	}
-
-	database.QueryRow(
-		`SELECT COUNT(*) FROM retro_participants WHERE retro_id = ? AND user_id = ?`, retroID, userID,
-	).Scan(&count)
-	if count != 1 {
-		t.Errorf("expected user to be added to retro_participants, got count=%d", count)
-	}
-}
-
-// Тест 8 — GET /retros/invite/:token невалідний токен
-func TestHandleRetrosJoin_InvalidToken(t *testing.T) {
-	database := newTestDB(t)
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /join/{token}", handlers.HandleRetrosJoin(database))
-
-	req := httptest.NewRequest("GET", "/join/nonexistent-token", nil)
-	rr := httptest.NewRecorder()
-	mux.ServeHTTP(rr, req)
-
-	if rr.Code != http.StatusNotFound {
-		t.Errorf("expected 404, got %d", rr.Code)
-	}
-}
-
-// Тест 9 — POST /retros/:id валідні дані
+// Тест 6 — POST /retros/:id валідні дані
 func TestHandleRetrosUpdate_Valid(t *testing.T) {
 	database := newTestDB(t)
 	teamID := createTestTeam(t, database, "Alpha")
-	retroID := createRetroWithToken(t, database, teamID, "tok-update")
+	retroID := createRetro(t, database, teamID)
 	re := newRetrosRenderer()
 
 	mux := http.NewServeMux()
@@ -348,7 +239,7 @@ func TestHandleRetrosUpdate_Valid(t *testing.T) {
 func TestHandleRetrosUpdate_PastDate(t *testing.T) {
 	database := newTestDB(t)
 	teamID := createTestTeam(t, database, "Alpha")
-	retroID := createRetroWithToken(t, database, teamID, "tok-past")
+	retroID := createRetro(t, database, teamID)
 	re := newRetrosRenderer()
 
 	mux := http.NewServeMux()
@@ -374,7 +265,7 @@ func TestHandleRetrosUpdate_PastDate(t *testing.T) {
 func TestHandleRetrosFinish(t *testing.T) {
 	database := newTestDB(t)
 	teamID := createTestTeam(t, database, "Alpha")
-	retroID := createRetroWithToken(t, database, teamID, "tok-finish")
+	retroID := createRetro(t, database, teamID)
 
 	mux := http.NewServeMux()
 	mux.Handle("POST /retros/{id}/finish", handlers.HandleRetrosFinish(database))

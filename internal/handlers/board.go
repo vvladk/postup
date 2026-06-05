@@ -29,6 +29,20 @@ func (b *boardRetro) IsActive() bool {
 	return b.Status == "active" && b.Date.After(time.Now().Add(-time.Hour))
 }
 
+func isRetroMember(db *sql.DB, retroID, userID int64) bool {
+	var count int
+	db.QueryRow(`
+		SELECT COUNT(*) FROM team_members tm
+		JOIN retros r ON r.team_id = tm.team_id
+		WHERE r.id = ? AND tm.user_id = ?`, retroID, userID).Scan(&count)
+	return count > 0
+}
+
+func renderForbidden(w http.ResponseWriter, r *http.Request, re *Renderer) {
+	w.WriteHeader(http.StatusForbidden)
+	re.Render(w, r, "forbidden.html", nil)
+}
+
 func HandleBoardShow(db *sql.DB, re *Renderer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		retroID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
@@ -39,11 +53,8 @@ func HandleBoardShow(db *sql.DB, re *Renderer) http.HandlerFunc {
 
 		user := middleware.GetUser(r)
 
-		var participantCount int
-		db.QueryRow(`SELECT COUNT(*) FROM retro_participants WHERE retro_id = ? AND user_id = ?`,
-			retroID, user.ID).Scan(&participantCount)
-		if participantCount == 0 {
-			http.Error(w, "Forbidden", http.StatusForbidden)
+		if !isRetroMember(db, retroID, user.ID) {
+			renderForbidden(w, r, re)
 			return
 		}
 
@@ -190,8 +201,9 @@ func HandleBoardShow(db *sql.DB, re *Renderer) http.HandlerFunc {
 		partRows, _ := db.Query(`
 			SELECT u.id, u.first_name, u.last_name
 			FROM users u
-			JOIN retro_participants rp ON rp.user_id = u.id
-			WHERE rp.retro_id = ?
+			JOIN team_members tm ON tm.user_id = u.id
+			JOIN retros r ON r.team_id = tm.team_id
+			WHERE r.id = ?
 			ORDER BY u.first_name, u.last_name`, retroID)
 		var participants []models.User
 		if partRows != nil {
@@ -274,10 +286,7 @@ func HandleBoardWS(db *sql.DB, hub *ws.Hub) http.HandlerFunc {
 
 		user := middleware.GetUser(r)
 
-		var count int
-		db.QueryRow(`SELECT COUNT(*) FROM retro_participants WHERE retro_id = ? AND user_id = ?`,
-			retroID, user.ID).Scan(&count)
-		if count == 0 {
+		if !isRetroMember(db, retroID, user.ID) {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
@@ -312,10 +321,7 @@ func HandleCardsCreate(db *sql.DB, hub *ws.Hub) http.HandlerFunc {
 
 		user := middleware.GetUser(r)
 
-		var participantCount int
-		db.QueryRow(`SELECT COUNT(*) FROM retro_participants WHERE retro_id = ? AND user_id = ?`,
-			retroID, user.ID).Scan(&participantCount)
-		if participantCount == 0 {
+		if !isRetroMember(db, retroID, user.ID) {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
@@ -600,10 +606,7 @@ func HandleCardsCopy(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		var participantCount int
-		db.QueryRow(`SELECT COUNT(*) FROM retro_participants WHERE retro_id = ? AND user_id = ?`,
-			card.RetroID, user.ID).Scan(&participantCount)
-		if participantCount == 0 {
+		if !isRetroMember(db, card.RetroID, user.ID) {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
@@ -682,10 +685,7 @@ func HandleActionItemsCreate(db *sql.DB, hub *ws.Hub) http.HandlerFunc {
 
 		user := middleware.GetUser(r)
 
-		var participantCount int
-		db.QueryRow(`SELECT COUNT(*) FROM retro_participants WHERE retro_id = ? AND user_id = ?`,
-			retroID, user.ID).Scan(&participantCount)
-		if participantCount == 0 {
+		if !isRetroMember(db, retroID, user.ID) {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
@@ -748,10 +748,7 @@ func HandleActionItemsCreate(db *sql.DB, hub *ws.Hub) http.HandlerFunc {
 			http.Error(w, "assignee_id is required", http.StatusBadRequest)
 			return
 		}
-		var assigneeCount int
-		db.QueryRow(`SELECT COUNT(*) FROM retro_participants WHERE retro_id = ? AND user_id = ?`,
-			retroID, assigneeID).Scan(&assigneeCount)
-		if assigneeCount == 0 {
+		if !isRetroMember(db, retroID, assigneeID) {
 			http.Error(w, "assignee_id is not a participant", http.StatusBadRequest)
 			return
 		}
@@ -847,10 +844,7 @@ func HandleActionItemsUpdateStatus(db *sql.DB, hub *ws.Hub) http.HandlerFunc {
 			return
 		}
 
-		var participantCount int
-		db.QueryRow(`SELECT COUNT(*) FROM retro_participants WHERE retro_id = ? AND user_id = ?`,
-			retroID, user.ID).Scan(&participantCount)
-		if participantCount == 0 {
+		if !isRetroMember(db, retroID, user.ID) {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
@@ -932,10 +926,7 @@ func HandleCardsVote(db *sql.DB, hub *ws.Hub) http.HandlerFunc {
 		}
 		retroID := card.RetroID
 
-		var participantCount int
-		db.QueryRow(`SELECT COUNT(*) FROM retro_participants WHERE retro_id = ? AND user_id = ?`,
-			retroID, user.ID).Scan(&participantCount)
-		if participantCount == 0 {
+		if !isRetroMember(db, retroID, user.ID) {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}

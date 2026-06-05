@@ -237,7 +237,7 @@ func TestHubBroadcastOnCardCreate(t *testing.T) {
 		teamID, tmplID, future, now,
 	)
 	retroID, _ := res.LastInsertId()
-	database.Exec(`INSERT INTO retro_participants (retro_id, user_id) VALUES (?, ?)`, retroID, userID)
+	database.Exec(`INSERT OR IGNORE INTO team_members (team_id, user_id) VALUES (?, ?)`, teamID, userID)
 
 	// WS listener — userID 999, не є постером, отримає broadcast
 	wsSrv := httptest.NewServer(serveWS(hub, retroID, 999))

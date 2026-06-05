@@ -33,9 +33,9 @@ func createRetroWithParticipants(t *testing.T, database *sql.DB, teamID, templat
 	retroID, _ := res.LastInsertId()
 	for _, uid := range userIDs {
 		if _, err := database.Exec(
-			`INSERT INTO retro_participants (retro_id, user_id) VALUES (?, ?)`, retroID, uid,
+			`INSERT OR IGNORE INTO team_members (team_id, user_id) VALUES (?, ?)`, teamID, uid,
 		); err != nil {
-			t.Fatalf("add participant %d: %v", uid, err)
+			t.Fatalf("add team member %d: %v", uid, err)
 		}
 	}
 	return retroID
@@ -103,9 +103,9 @@ func createRetroWithVoteLimit(t *testing.T, database *sql.DB, teamID, templateID
 	retroID, _ := res.LastInsertId()
 	for _, uid := range userIDs {
 		if _, err := database.Exec(
-			`INSERT INTO retro_participants (retro_id, user_id) VALUES (?, ?)`, retroID, uid,
+			`INSERT OR IGNORE INTO team_members (team_id, user_id) VALUES (?, ?)`, teamID, uid,
 		); err != nil {
-			t.Fatalf("add participant %d: %v", uid, err)
+			t.Fatalf("add team member %d: %v", uid, err)
 		}
 	}
 	return retroID
@@ -241,7 +241,7 @@ func TestHandleCardsCreate_FinishedRetro(t *testing.T) {
 		t.Fatalf("insert finished retro: %v", err)
 	}
 	retroID, _ := res.LastInsertId()
-	database.Exec(`INSERT INTO retro_participants (retro_id, user_id) VALUES (?, ?)`, retroID, userID)
+	database.Exec(`INSERT OR IGNORE INTO team_members (team_id, user_id) VALUES (?, ?)`, teamID, userID)
 
 	colID := firstColumnOf(t, database, tmplID)
 	mux := boardMux(database)
@@ -856,7 +856,7 @@ func TestHandleActionItemsCreate_FinishedRetro(t *testing.T) {
 		teamID, tmplID, past, now,
 	)
 	retroID, _ := res.LastInsertId()
-	database.Exec(`INSERT INTO retro_participants (retro_id, user_id) VALUES (?, ?)`, retroID, userID)
+	database.Exec(`INSERT OR IGNORE INTO team_members (team_id, user_id) VALUES (?, ?)`, teamID, userID)
 	colID := fixedLastColumnOf(t, database, tmplID)
 	mux := actionItemsMux(database)
 
@@ -1510,7 +1510,7 @@ func TestHandleCardsVote_FinishedRetro(t *testing.T) {
 		t.Fatalf("create finished retro: %v", err)
 	}
 	retroID, _ := res.LastInsertId()
-	database.Exec(`INSERT INTO retro_participants (retro_id, user_id) VALUES (?, ?)`, retroID, userID)
+	database.Exec(`INSERT OR IGNORE INTO team_members (team_id, user_id) VALUES (?, ?)`, teamID, userID)
 
 	colID := firstColumnOf(t, database, tmplID)
 	cardID := createCard(t, database, retroID, colID, userID, "Картка")

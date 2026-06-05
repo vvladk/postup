@@ -29,7 +29,7 @@ func TestMigrateTablesExist(t *testing.T) {
 	}
 
 	want := []string{
-		"action_items", "action_statuses", "cards", "retro_participants",
+		"action_items", "action_statuses", "cards",
 		"retros", "schema_migrations", "sessions", "settings", "team_members",
 		"teams", "template_columns", "templates", "users", "votes",
 	}
