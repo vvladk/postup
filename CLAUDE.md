@@ -73,10 +73,11 @@ postup/                      # репозиторій
 │   └── workflows/
 │       └── release.yml      # GitHub Actions: збірка і публікація релізів
 │
-├── cmd/                     # CLI команди
-│   └── init.go              # --init, --reset
-│
 ├── internal/
+│   ├── bootstrap/           # перший запуск: інтерактивний wizard, --reset пароля
+│   │   └── bootstrap.go
+│   ├── config/              # конфігурація сервера (порт, IP, embedded FS)
+│   │   └── config.go
 │   ├── db/                  # підключення до SQLite, міграції
 │   │   ├── db.go
 │   │   └── migrations/
@@ -92,7 +93,6 @@ postup/                      # репозиторій
 │   │   ├── render.go        # спільні хелпери рендерингу шаблонів
 │   │   ├── retros.go
 │   │   ├── settings.go
-│   │   ├── setup.go         # перший запуск / wizard
 │   │   ├── statuses.go
 │   │   ├── teams.go
 │   │   ├── templates.go
@@ -102,6 +102,9 @@ postup/                      # репозиторій
 │   ├── ipdetect/            # отримання зовнішнього IP через api.ipify.org
 │   ├── middleware/          # auth, role check
 │   ├── scheduler/           # фоновий планувальник задач
+│   ├── server/              # App struct і RegisterRoutes
+│   │   ├── app.go
+│   │   └── routes.go
 │   ├── session/             # cookie-based сесії, 12 год TTL
 │   └── ws/                  # WebSocket hub
 │
@@ -119,7 +122,6 @@ postup/                      # репозиторій
 │       ├── retros_invite.html
 │       ├── retros_member.html / retros_pm.html
 │       ├── settings.html
-│       ├── setup.html
 │       ├── statuses.html
 │       ├── teams.html / teams_edit.html / teams_new.html
 │       ├── templates.html / templates_edit.html / templates_new.html
