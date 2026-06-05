@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/postup-app/postup/internal/handlers"
+	"github.com/postup-app/postup/internal/middleware"
 )
 
 func newUsersRenderer() *handlers.Renderer {
@@ -426,6 +427,66 @@ func TestHandleUsersResetPassword(t *testing.T) {
 	expires, _ := time.Parse(time.RFC3339, resetExpiresAt.String)
 	if !expires.After(time.Now().UTC()) {
 		t.Error("expected reset_token_expires_at to be in the future")
+	}
+}
+
+func TestHandleUsersIndexActiveStatus(t *testing.T) {
+	database := newTestDB(t)
+	createTestAdmin(t, database, "admin@example.com", "password123")
+	createTestMember(t, database, "invited@example.com") // no password_hash → inactive
+
+	re := handlers.NewRenderer(fstest.MapFS{
+		"templates/layout.html": {
+			Data: []byte(`{{define "layout"}}{{block "content" .}}{{end}}{{end}}`),
+		},
+		"templates/pages/users.html": {
+			Data: []byte(`{{define "content"}}{{range .Users}}{{.Email}}:{{.Active}} {{end}}{{end}}`),
+		},
+	})
+
+	req := httptest.NewRequest("GET", "/users", nil)
+	rr := httptest.NewRecorder()
+	handlers.HandleUsersIndex(database, re)(rr, req)
+
+	body := rr.Body.String()
+	if !strings.Contains(body, "admin@example.com:true") {
+		t.Errorf("expected admin to be active, got: %s", body)
+	}
+	if !strings.Contains(body, "invited@example.com:false") {
+		t.Errorf("expected invited user without password to be inactive, got: %s", body)
+	}
+}
+
+func TestHandleUsersDeleteSelf(t *testing.T) {
+	database := newTestDB(t)
+	adminID := createTestAdmin(t, database, "admin@example.com", "password123")
+
+	now := time.Now().UTC().Format(time.RFC3339)
+	database.Exec(
+		`INSERT INTO sessions (user_id, token, expires_at, created_at) VALUES (?, ?, ?, ?)`,
+		adminID, "self-delete-token", time.Now().Add(12*time.Hour).Format(time.RFC3339), now,
+	)
+
+	auth := middleware.NewAuth(database)
+	mux := http.NewServeMux()
+	mux.Handle("POST /users/{id}/delete", auth.RequireAuth(handlers.HandleUsersDelete(database)))
+
+	req := httptest.NewRequest("POST", fmt.Sprintf("/users/%d/delete", adminID), nil)
+	req.AddCookie(&http.Cookie{Name: "session_id", Value: "self-delete-token"})
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("expected 302, got %d", rr.Code)
+	}
+	if !strings.Contains(rr.Header().Get("Location"), "error=") {
+		t.Errorf("expected error param in redirect, got: %s", rr.Header().Get("Location"))
+	}
+
+	var count int
+	database.QueryRow(`SELECT COUNT(*) FROM users WHERE id = ?`, adminID).Scan(&count)
+	if count != 1 {
+		t.Errorf("expected admin to remain in DB (self-delete blocked), got count=%d", count)
 	}
 }
 
