@@ -37,6 +37,8 @@ func (a *App) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /retros/{id}", auth.RequireAdmin(handlers.HandleRetrosUpdate(a.DB, r)))
 	mux.Handle("POST /retros/{id}/finish", auth.RequireAdmin(handlers.HandleRetrosFinish(a.DB)))
 	mux.Handle("POST /retros/{id}/copy-action-items", auth.RequireAdmin(handlers.HandleRetrosCopyActionItems(a.DB)))
+	mux.Handle("GET /retros/{id}/export.md", auth.RequireAdmin(handlers.HandleRetrosExportMD(a.DB)))
+	mux.Handle("GET /retros/{id}/export.csv", auth.RequireAdmin(handlers.HandleRetrosExportCSV(a.DB)))
 	mux.HandleFunc("GET /login", handlers.HandleLoginGet(a.DB, r))
 	mux.HandleFunc("POST /login", handlers.HandleLoginPost(a.DB, r))
 	mux.HandleFunc("GET /logout", handlers.HandleLogout(a.DB))

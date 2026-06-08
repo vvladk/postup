@@ -78,6 +78,8 @@
                 <form method="POST" action="/retros/{{.ID}}/copy-action-items" style="display:inline">
                     <button type="submit" class="btn-link">Скопіювати AI</button>
                 </form>
+                <a href="/retros/{{.ID}}/export.md" class="btn-link">↓ MD</a>
+                <a href="/retros/{{.ID}}/export.csv" class="btn-link">↓ CSV</a>
                 {{end}}
             </td>
         </tr>
