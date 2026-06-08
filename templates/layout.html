@@ -42,6 +42,12 @@
     <div class="admin-statusbar">
         <span class="admin-statusbar-label">Invite URL:</span>
         <span class="admin-statusbar-url">{{.AdminBaseURL}}</span>
+        {{if .AdminBaseURLAuto}}
+        <span class="badge badge-active admin-statusbar-badge">Авто</span>
+        {{else}}
+        <span class="badge badge-admin admin-statusbar-badge">Вручну</span>
+        {{end}}
+        <button class="admin-statusbar-copy" onclick="copyToClipboard('{{.AdminBaseURL}}', this)" title="Копіювати">⎘</button>
     </div>
     {{end}}
     <main class="main">

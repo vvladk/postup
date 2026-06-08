@@ -103,6 +103,28 @@ a:hover {
     color: var(--accent-purple);
 }
 
+.admin-statusbar-badge {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.5rem;
+}
+
+.admin-statusbar-copy {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.75rem;
+    line-height: 1;
+    padding: 0.15rem 0.45rem;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.admin-statusbar-copy:hover {
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
+}
+
 .nav-brand {
     color: var(--text-primary);
     font-weight: 700;

@@ -56,6 +56,7 @@ func (re *Renderer) Render(w http.ResponseWriter, r *http.Request, page string, 
 	data["CurrentTheme"] = theme
 	if user != nil && user.IsAdmin() && re.db != nil {
 		data["AdminBaseURL"] = resolveBaseURL(re.db, re.port, re.getIP)
+		data["AdminBaseURLAuto"] = settingGet(re.db, "base_url") == ""
 	}
 
 	funcMap := template.FuncMap{
