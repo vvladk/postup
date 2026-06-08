@@ -37,10 +37,21 @@ type memberRetroItem struct {
 	IsActive bool
 }
 
-func HandleRetrosPMIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
+func retroActiveDuration(db *sql.DB) time.Duration {
+	var val string
+	db.QueryRow(`SELECT value FROM settings WHERE key = 'retro_duration'`).Scan(&val)
+	if h, err := strconv.Atoi(val); err == nil && h > 0 {
+		return time.Duration(h) * time.Hour
+	}
+	return 2 * time.Hour
+}
+
+func HandleRetrosPMIndex(db *sql.DB, re *Renderer, port string, getIP func() string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		baseURL := fmt.Sprintf("http://%s:%s", getIP(), port)
 		now := time.Now().UTC()
-		cutoff := now.Add(-time.Hour).Format(time.RFC3339)
+		dur := retroActiveDuration(db)
+		cutoff := now.Add(-dur).Format(time.RFC3339)
 
 		activeRows, err := db.Query(`
 			SELECT r.id, t.name, COALESCE(tmpl.name, ''), r.date, r.vote_limit, r.status,
@@ -148,7 +159,7 @@ func HandleRetrosPMIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
 				return
 			}
 			item.Date, _ = time.Parse(time.RFC3339, dateStr)
-			item.IsActive = item.Status == "active" && item.Date.After(now.Add(-time.Hour))
+			item.IsActive = item.Status == "active" && item.Date.After(now.Add(-dur))
 			allRetros = append(allRetros, item)
 		}
 
@@ -184,6 +195,7 @@ func HandleRetrosPMIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
 			"HasFilters":     hasFilters,
 			"HasRetros":      totalRetros > 0,
 			"FlashError":     r.URL.Query().Get("error"),
+			"BaseURL":        baseURL,
 		})
 	}
 }
@@ -192,6 +204,7 @@ func HandleRetrosMemberIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := middleware.GetUser(r)
 		now := time.Now().UTC()
+		dur := retroActiveDuration(db)
 
 		rows, err := db.Query(`
 			SELECT r.id, t.name, r.date, r.status
@@ -215,7 +228,7 @@ func HandleRetrosMemberIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
 				return
 			}
 			item.Date, _ = time.Parse(time.RFC3339, dateStr)
-			item.IsActive = item.Status == "active" && item.Date.After(now.Add(-time.Hour))
+			item.IsActive = item.Status == "active" && item.Date.After(now.Add(-dur))
 			if item.IsActive {
 				active = append(active, item)
 			} else {
@@ -497,10 +510,6 @@ func HandleRetrosUpdate(db *sql.DB, re *Renderer) http.HandlerFunc {
 			renderErr("Невірний формат дати")
 			return
 		}
-		if !retroDate.After(time.Now()) {
-			renderErr("Дата має бути в майбутньому")
-			return
-		}
 		if !voteLimitValid {
 			renderErr("Ліміт голосів має бути від 1 до 50")
 			return
@@ -532,6 +541,80 @@ func HandleRetrosFinish(db *sql.DB) http.HandlerFunc {
 		}
 
 		transferActionItems(db, retroID)
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	}
+}
+
+func HandleRetrosCopyActionItems(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		retroID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		var teamID int64
+		var dateStr string
+		if err := db.QueryRow(`SELECT team_id, date FROM retros WHERE id = ?`, retroID).
+			Scan(&teamID, &dateStr); err != nil {
+			http.Redirect(w, r, "/?error="+url.QueryEscape("Ретро не знайдено"), http.StatusSeeOther)
+			return
+		}
+
+		var nextRetroID int64
+		if err := db.QueryRow(`
+			SELECT id FROM retros
+			WHERE team_id = ? AND date > ? AND status = 'active'
+			ORDER BY date ASC LIMIT 1`, teamID, dateStr).
+			Scan(&nextRetroID); err != nil {
+			http.Redirect(w, r, "/?error="+url.QueryEscape("Наступне ретро не знайдено"), http.StatusSeeOther)
+			return
+		}
+
+		var nextFixedFirstID int64
+		if err := db.QueryRow(`
+			SELECT tc.id FROM template_columns tc
+			JOIN retros r ON r.template_id = tc.template_id
+			WHERE r.id = ? AND tc.type = 'fixed_first'`, nextRetroID).
+			Scan(&nextFixedFirstID); err != nil {
+			http.Redirect(w, r, "/?error="+url.QueryEscape("Колонку наступного ретро не знайдено"), http.StatusSeeOther)
+			return
+		}
+
+		rows, err := db.Query(`
+			SELECT ai.assignee_id, ai.content, ai.deadline, ai.status_id
+			FROM action_items ai
+			JOIN template_columns tc ON tc.id = ai.column_id
+			WHERE ai.retro_id = ? AND tc.type IN ('fixed_first', 'fixed_last')`,
+			retroID)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		type aiRow struct {
+			AssigneeID interface{}
+			Content    string
+			Deadline   interface{}
+			StatusID   interface{}
+		}
+		var items []aiRow
+		for rows.Next() {
+			var ai aiRow
+			rows.Scan(&ai.AssigneeID, &ai.Content, &ai.Deadline, &ai.StatusID)
+			items = append(items, ai)
+		}
+		rows.Close()
+
+		now := time.Now().UTC().Format(time.RFC3339)
+		for _, ai := range items {
+			db.Exec(`
+				INSERT INTO action_items (retro_id, column_id, assignee_id, content, deadline, status_id, created_at)
+				VALUES (?, ?, ?, ?, ?, ?, ?)`,
+				nextRetroID, nextFixedFirstID, ai.AssigneeID, ai.Content, ai.Deadline, ai.StatusID, now)
+		}
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}

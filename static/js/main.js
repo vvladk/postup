@@ -113,7 +113,9 @@ function copyText(inputId) {
     });
 }
 
-function copyInviteLink() { copyText('invite-link'); }
+function copyInviteLink(url) {
+    copyToClipboard(url, event.currentTarget);
+}
 function copyResetLink()  { copyText('reset-link'); }
 
 function copyToClipboard(text, buttonEl) {

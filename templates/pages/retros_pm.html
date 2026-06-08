@@ -70,9 +70,15 @@
                 {{end}}
             </td>
             <td class="actions">
-                {{if .IsActive}}<a href="/retros/{{.ID}}/board">Увійти</a>{{end}}
+                <a href="/retros/{{.ID}}/board">Увійти</a>
                 <a href="/retros/{{.ID}}/edit">Редагувати</a>
-                <button class="btn-link" onclick="copyInviteLink({{.ID}})">Invite link</button>
+                {{if .IsActive}}
+                <button class="btn-link" onclick="copyInviteLink('{{$.BaseURL}}/retros/{{.ID}}/board')">Invite link</button>
+                {{else}}
+                <form method="POST" action="/retros/{{.ID}}/copy-action-items" style="display:inline">
+                    <button type="submit" class="btn-link">Скопіювати AI</button>
+                </form>
+                {{end}}
             </td>
         </tr>
         {{end}}
