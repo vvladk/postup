@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"html/template"
 	"io/fs"
 	"log"
@@ -11,11 +12,14 @@ import (
 )
 
 type Renderer struct {
-	fs fs.FS
+	fs    fs.FS
+	db    *sql.DB
+	port  string
+	getIP func() string
 }
 
-func NewRenderer(files fs.FS) *Renderer {
-	return &Renderer{fs: files}
+func NewRenderer(files fs.FS, db *sql.DB, port string, getIP func() string) *Renderer {
+	return &Renderer{fs: files, db: db, port: port, getIP: getIP}
 }
 
 func getLang(r *http.Request) string {
@@ -46,9 +50,13 @@ func (re *Renderer) Render(w http.ResponseWriter, r *http.Request, page string, 
 	if data == nil {
 		data = map[string]any{}
 	}
-	data["CurrentUser"] = middleware.GetUser(r)
+	user := middleware.GetUser(r)
+	data["CurrentUser"] = user
 	data["CurrentLang"] = lang
 	data["CurrentTheme"] = theme
+	if user != nil && user.IsAdmin() && re.db != nil {
+		data["AdminBaseURL"] = resolveBaseURL(re.db, re.port, re.getIP)
+	}
 
 	funcMap := template.FuncMap{
 		"t": func(key string) string { return i18n.T(lang, key) },

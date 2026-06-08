@@ -25,7 +25,7 @@ func newUsersRenderer() *handlers.Renderer {
 		"templates/pages/users.html": {
 			Data: []byte(`{{define "content"}}{{range .Users}}{{.Email}} {{end}}{{end}}`),
 		},
-	})
+	}, nil, "", nil)
 }
 
 func createTestTeam(t *testing.T, database *sql.DB, name string) int64 {
@@ -198,7 +198,7 @@ func newUsersEditRenderer() *handlers.Renderer {
 		"templates/pages/users_edit.html": {
 			Data: []byte(`{{define "content"}}{{if .Error}}{{.Error}}{{end}}<form></form>{{end}}`),
 		},
-	})
+	}, nil, "", nil)
 }
 
 func createTestRetro(t *testing.T, database *sql.DB, teamID int64) int64 {
@@ -442,7 +442,7 @@ func TestHandleUsersIndexActiveStatus(t *testing.T) {
 		"templates/pages/users.html": {
 			Data: []byte(`{{define "content"}}{{range .Users}}{{.Email}}:{{.Active}} {{end}}{{end}}`),
 		},
-	})
+	}, nil, "", nil)
 
 	req := httptest.NewRequest("GET", "/users", nil)
 	rr := httptest.NewRecorder()

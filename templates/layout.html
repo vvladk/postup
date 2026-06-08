@@ -31,13 +31,19 @@
             <div class="nav-dropdown" id="nav-dropdown">
                 <a class="nav-dropdown-item" href="/settings">{{t "nav.settings"}}</a>
                 {{if .CurrentUser.IsAdmin}}
-                <a class="nav-dropdown-item" href="/timer">{{t "nav.timer"}}</a>
+                <a class="nav-dropdown-item" href="/timer" target="_blank">{{t "nav.timer"}}</a>
                 {{end}}
                 <a class="nav-dropdown-item nav-dropdown-item--danger" href="/logout">{{t "nav.logout"}}</a>
             </div>
         </div>
         {{end}}
     </nav>
+    {{if .AdminBaseURL}}
+    <div class="admin-statusbar">
+        <span class="admin-statusbar-label">Invite URL:</span>
+        <span class="admin-statusbar-url">{{.AdminBaseURL}}</span>
+    </div>
+    {{end}}
     <main class="main">
         {{block "content" .}}{{end}}
     </main>

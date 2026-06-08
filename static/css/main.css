@@ -84,6 +84,25 @@ a:hover {
     z-index: 100;
 }
 
+.admin-statusbar {
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 0.3rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.admin-statusbar-label {
+    color: var(--text-muted);
+}
+
+.admin-statusbar-url {
+    font-family: monospace;
+    color: var(--accent-purple);
+}
+
 .nav-brand {
     color: var(--text-primary);
     font-weight: 700;

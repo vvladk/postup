@@ -19,7 +19,7 @@ func newTeamsNewRenderer() *handlers.Renderer {
 		"templates/pages/teams_new.html": {
 			Data: []byte(`{{define "content"}}{{if .Error}}{{.Error}}{{end}}<form></form>{{end}}`),
 		},
-	})
+	}, nil, "", nil)
 }
 
 func newTeamsEditRenderer() *handlers.Renderer {
@@ -30,7 +30,7 @@ func newTeamsEditRenderer() *handlers.Renderer {
 		"templates/pages/teams_edit.html": {
 			Data: []byte(`{{define "content"}}{{if .Error}}{{.Error}}{{end}}<form></form>{{end}}`),
 		},
-	})
+	}, nil, "", nil)
 }
 
 func newTeamsIndexRenderer() *handlers.Renderer {
@@ -41,7 +41,7 @@ func newTeamsIndexRenderer() *handlers.Renderer {
 		"templates/pages/teams.html": {
 			Data: []byte(`{{define "content"}}{{range .Teams}}{{.Name}} {{.MembersCount}} {{end}}{{end}}`),
 		},
-	})
+	}, nil, "", nil)
 }
 
 func TestHandleTeamsCreateValid(t *testing.T) {

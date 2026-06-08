@@ -26,15 +26,27 @@
     <form method="POST" action="/settings" class="settings-form">
         <input type="hidden" name="section" value="system">
         <div class="form-group">
-            <label for="manual_ip">{{t "settings.ip"}}</label>
-            <input type="text" id="manual_ip" name="manual_ip" value="{{.ManualIP}}"
-                   placeholder="{{t "settings.ip_hint"}}">
-            <span class="field-hint">{{t "settings.ip_hint"}}</span>
+            <label>{{t "settings.base_url"}}</label>
+            <label class="toggle-option" style="margin-bottom:0.5rem;font-weight:normal">
+                <input type="checkbox" id="base_url_auto" name="base_url_auto" value="1"
+                       {{if .BaseURLAuto}}checked{{end}}
+                       onchange="document.getElementById('base_url').disabled=this.checked">
+                <span>{{t "settings.base_url_auto"}}</span>
+            </label>
+            <input type="text" id="base_url" name="base_url" value="{{.BaseURL}}"
+                   placeholder="{{t "settings.base_url_hint"}}"
+                   {{if .BaseURLAuto}}disabled{{end}}>
+            <span class="field-hint">{{t "settings.base_url_hint"}}</span>
         </div>
         <div class="form-group">
             <label for="port">{{t "settings.port"}}</label>
             <input type="number" id="port" name="port" value="{{.Port}}" min="1" max="65535" style="width:8rem">
             <span class="field-hint">{{t "settings.port_hint"}}</span>
+        </div>
+        <div class="form-group">
+            <label for="retro_duration">{{t "settings.retro_duration"}}</label>
+            <input type="number" id="retro_duration" name="retro_duration" value="{{.RetroDuration}}" min="1" max="24" style="width:8rem">
+            <span class="field-hint">{{t "settings.retro_duration_hint"}}</span>
         </div>
         <button type="submit" class="btn btn-primary">{{t "settings.save_system"}}</button>
     </form>

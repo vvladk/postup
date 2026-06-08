@@ -20,7 +20,7 @@ func newSettingsRenderer() *handlers.Renderer {
 		"templates/pages/settings.html": {
 			Data: []byte(`{{define "content"}}settings{{end}}`),
 		},
-	})
+	}, nil, "", nil)
 }
 
 func makeSettingsMux(database *sql.DB, re *handlers.Renderer) *http.ServeMux {
@@ -64,24 +64,24 @@ func TestHandleSettingsShow_Unauthorized(t *testing.T) {
 	}
 }
 
-// Тест 3 — POST /settings system адміном → 302, IP збережено в БД
+// Тест 3 — POST /settings system адміном → 302, base_url збережено в БД
 func TestHandleSettingsUpdate_SystemByAdmin(t *testing.T) {
 	database := newTestDB(t)
 	userID := createTestAdmin(t, database, "admin@example.com", "password123")
 	mux := makeSettingsMux(database, newSettingsRenderer())
 
 	rr := postForm(mux, "/settings",
-		url.Values{"section": {"system"}, "manual_ip": {"1.2.3.4"}, "port": {"9090"}},
+		url.Values{"section": {"system"}, "base_url": {"https://abc.ngrok-free.app"}, "port": {"9090"}},
 		sessionCookie(t, database, userID))
 
 	if rr.Code != http.StatusSeeOther {
 		t.Errorf("expected 302, got %d", rr.Code)
 	}
 
-	var ip string
-	database.QueryRow(`SELECT value FROM settings WHERE key = 'manual_ip'`).Scan(&ip)
-	if ip != "1.2.3.4" {
-		t.Errorf("expected manual_ip='1.2.3.4' in DB, got %q", ip)
+	var val string
+	database.QueryRow(`SELECT value FROM settings WHERE key = 'base_url'`).Scan(&val)
+	if val != "https://abc.ngrok-free.app" {
+		t.Errorf("expected base_url='https://abc.ngrok-free.app' in DB, got %q", val)
 	}
 }
 
@@ -92,17 +92,17 @@ func TestHandleSettingsUpdate_SystemByMember(t *testing.T) {
 	mux := makeSettingsMux(database, newSettingsRenderer())
 
 	rr := postForm(mux, "/settings",
-		url.Values{"section": {"system"}, "manual_ip": {"5.5.5.5"}},
+		url.Values{"section": {"system"}, "base_url": {"https://evil.example.com"}},
 		sessionCookie(t, database, userID))
 
 	if rr.Code != http.StatusForbidden {
 		t.Errorf("expected 403, got %d", rr.Code)
 	}
 
-	var ip string
-	database.QueryRow(`SELECT value FROM settings WHERE key = 'manual_ip'`).Scan(&ip)
-	if ip == "5.5.5.5" {
-		t.Error("expected manual_ip to remain unchanged in DB after forbidden request")
+	var val string
+	database.QueryRow(`SELECT value FROM settings WHERE key = 'base_url'`).Scan(&val)
+	if val == "https://evil.example.com" {
+		t.Error("expected base_url to remain unchanged in DB after forbidden request")
 	}
 }
 

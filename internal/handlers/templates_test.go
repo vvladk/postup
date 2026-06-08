@@ -64,7 +64,7 @@ func newTemplatesEditRenderer() *handlers.Renderer {
 		"templates/pages/templates_edit.html": {
 			Data: []byte(`{{define "content"}}{{if .Error}}{{.Error}}{{end}}<form></form>{{end}}`),
 		},
-	})
+	}, nil, "", nil)
 }
 
 func newTemplatesNewRenderer() *handlers.Renderer {
@@ -75,7 +75,7 @@ func newTemplatesNewRenderer() *handlers.Renderer {
 		"templates/pages/templates_new.html": {
 			Data: []byte(`{{define "content"}}{{if .Error}}{{.Error}}{{end}}<form></form>{{end}}`),
 		},
-	})
+	}, nil, "", nil)
 }
 
 func postTemplates(t *testing.T, re *handlers.Renderer, form url.Values) *httptest.ResponseRecorder {

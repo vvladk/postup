@@ -23,7 +23,7 @@ func newStatusesRenderer() *handlers.Renderer {
 		"templates/pages/statuses.html": {
 			Data: []byte(`{{define "content"}}{{range .Statuses}}{{.Name}};{{end}}{{end}}`),
 		},
-	})
+	}, nil, "", nil)
 }
 
 func createTestStatus(t *testing.T, database *sql.DB, name string, isDefault bool) int64 {

@@ -17,7 +17,7 @@ func newTimerRenderer() *handlers.Renderer {
 		"templates/pages/timer.html": {
 			Data: []byte(`<div id="timer-display">10:00</div>`),
 		},
-	})
+	}, nil, "", nil)
 }
 
 // TestHandleTimerShow_Admin — GET /timer as admin returns 200 with timer element.

@@ -73,7 +73,7 @@
                 <a href="/retros/{{.ID}}/board">Увійти</a>
                 <a href="/retros/{{.ID}}/edit">Редагувати</a>
                 {{if .IsActive}}
-                <button class="btn-link" onclick="copyInviteLink('{{$.BaseURL}}/retros/{{.ID}}/board')">Invite link</button>
+                <button class="btn-link" onclick="copyInviteLink('{{$.AdminBaseURL}}/retros/{{.ID}}/board')">Invite link</button>
                 {{else}}
                 <form method="POST" action="/retros/{{.ID}}/copy-action-items" style="display:inline">
                     <button type="submit" class="btn-link">Скопіювати AI</button>

@@ -46,9 +46,8 @@ func retroActiveDuration(db *sql.DB) time.Duration {
 	return 2 * time.Hour
 }
 
-func HandleRetrosPMIndex(db *sql.DB, re *Renderer, port string, getIP func() string) http.HandlerFunc {
+func HandleRetrosPMIndex(db *sql.DB, re *Renderer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		baseURL := fmt.Sprintf("http://%s:%s", getIP(), port)
 		now := time.Now().UTC()
 		dur := retroActiveDuration(db)
 		cutoff := now.Add(-dur).Format(time.RFC3339)
@@ -193,9 +192,8 @@ func HandleRetrosPMIndex(db *sql.DB, re *Renderer, port string, getIP func() str
 			"NextSort":       nextSort,
 			"ShowTeamFilter": len(teams) > 1,
 			"HasFilters":     hasFilters,
-			"HasRetros":      totalRetros > 0,
-			"FlashError":     r.URL.Query().Get("error"),
-			"BaseURL":        baseURL,
+			"HasRetros":  totalRetros > 0,
+			"FlashError": r.URL.Query().Get("error"),
 		})
 	}
 }

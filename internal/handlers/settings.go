@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -11,20 +12,26 @@ import (
 
 func HandleSettingsShow(db *sql.DB, re *Renderer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		manualIP := settingGet(db, "manual_ip")
 		port := settingGet(db, "port")
 		if port == "" {
 			port = "8080"
 		}
+		retroDuration := settingGet(db, "retro_duration")
+		if retroDuration == "" {
+			retroDuration = "2"
+		}
+		baseURL := settingGet(db, "base_url")
 
 		saved := r.URL.Query().Get("saved") == "1"
 		restart := r.URL.Query().Get("restart") == "1"
 
 		re.Render(w, r, "settings.html", map[string]any{
-			"ManualIP": manualIP,
-			"Port":     port,
-			"Saved":    saved,
-			"Restart":  restart,
+			"Port":          port,
+			"RetroDuration": retroDuration,
+			"BaseURL":       baseURL,
+			"BaseURLAuto":   baseURL == "",
+			"Saved":         saved,
+			"Restart":       restart,
 		})
 	}
 }
@@ -45,14 +52,22 @@ func HandleSettingsUpdate(db *sql.DB) http.HandlerFunc {
 				http.Error(w, "Forbidden", http.StatusForbidden)
 				return
 			}
-			manualIP := strings.TrimSpace(r.FormValue("manual_ip"))
 			port := strings.TrimSpace(r.FormValue("port"))
 			if port == "" {
 				port = "8080"
 			}
+			retroDuration := strings.TrimSpace(r.FormValue("retro_duration"))
+			if retroDuration == "" {
+				retroDuration = "2"
+			}
+			baseURL := ""
+			if r.FormValue("base_url_auto") != "1" {
+				baseURL = strings.TrimSpace(r.FormValue("base_url"))
+			}
 			currentPort := settingGet(db, "port")
-			settingSet(db, "manual_ip", manualIP)
 			settingSet(db, "port", port)
+			settingSet(db, "retro_duration", retroDuration)
+			settingSet(db, "base_url", baseURL)
 			if port != currentPort {
 				http.Redirect(w, r, "/settings?saved=1&restart=1", http.StatusSeeOther)
 				return
@@ -102,4 +117,11 @@ func settingGet(db *sql.DB, key string) string {
 func settingSet(db *sql.DB, key, value string) {
 	db.Exec(`INSERT INTO settings (key, value) VALUES (?, ?)
 		ON CONFLICT(key) DO UPDATE SET value = excluded.value`, key, value)
+}
+
+func resolveBaseURL(db *sql.DB, port string, getIP func() string) string {
+	if baseURL := settingGet(db, "base_url"); baseURL != "" {
+		return baseURL
+	}
+	return fmt.Sprintf("http://%s:%s", getIP(), port)
 }

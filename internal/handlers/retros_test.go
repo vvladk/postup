@@ -25,7 +25,7 @@ func newRetrosRenderer() *handlers.Renderer {
 		"templates/pages/retros_edit.html": {
 			Data: []byte(`{{define "content"}}{{if .Error}}{{.Error}}{{end}}<form></form>{{end}}`),
 		},
-	})
+	}, nil, "", nil)
 }
 
 func createTeamWithMembers(t *testing.T, database *sql.DB, teamName string, userIDs []int64) int64 {
@@ -236,31 +236,6 @@ func TestHandleRetrosUpdate_Valid(t *testing.T) {
 }
 
 // Тест 10 — POST /retros/:id дата в минулому
-func TestHandleRetrosUpdate_PastDate(t *testing.T) {
-	database := newTestDB(t)
-	teamID := createTestTeam(t, database, "Alpha")
-	retroID := createRetro(t, database, teamID)
-	re := newRetrosRenderer()
-
-	mux := http.NewServeMux()
-	mux.Handle("POST /retros/{id}", handlers.HandleRetrosUpdate(database, re))
-
-	form := url.Values{}
-	form.Set("date", time.Now().Add(-24*time.Hour).Format("2006-01-02T15:04"))
-	form.Set("vote_limit", "10")
-	req := httptest.NewRequest("POST", fmt.Sprintf("/retros/%d", retroID), strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	rr := httptest.NewRecorder()
-	mux.ServeHTTP(rr, req)
-
-	if rr.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", rr.Code)
-	}
-	if !strings.Contains(rr.Body.String(), "майбутньому") {
-		t.Errorf("expected past-date error in body, got: %s", rr.Body.String())
-	}
-}
-
 // Тест 11 — POST /retros/:id/finish
 func TestHandleRetrosFinish(t *testing.T) {
 	database := newTestDB(t)

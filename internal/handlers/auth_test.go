@@ -47,7 +47,7 @@ func newTestRenderer() *handlers.Renderer {
 		"templates/pages/reset.html": {
 			Data: []byte(`{{define "content"}}{{if .Invalid}}недійсне або прострочене{{else}}Новий пароль{{if .Error}}{{.Error}}{{end}}<form></form>{{end}}{{end}}`),
 		},
-	})
+	}, nil, "", nil)
 }
 
 func createTestAdmin(t *testing.T, database *sql.DB, email, password string) int64 {

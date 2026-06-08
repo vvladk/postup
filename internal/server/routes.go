@@ -9,10 +9,10 @@ import (
 )
 
 func (a *App) RegisterRoutes(mux *http.ServeMux) {
-	r := handlers.NewRenderer(a.Cfg.FS)
+	r := handlers.NewRenderer(a.Cfg.FS, a.DB, a.Cfg.Port, a.Cfg.GetIP)
 	auth := middleware.NewAuth(a.DB)
 
-	retrosPMHandler := auth.RequireAdmin(handlers.HandleRetrosPMIndex(a.DB, r, a.Cfg.Port, a.Cfg.GetIP))
+	retrosPMHandler := auth.RequireAdmin(handlers.HandleRetrosPMIndex(a.DB, r))
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, req *http.Request) {
 		if req.URL.Path != "/" {
 			http.NotFound(w, req)
