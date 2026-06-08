@@ -411,7 +411,8 @@ function updateVotesBadge(remaining) {
 
 function initWebSocket(retroID) {
     if (!retroID) return;
-    const ws = new WebSocket('ws://' + location.host + '/retros/' + retroID + '/ws');
+    const wsProto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const ws = new WebSocket(wsProto + location.host + '/retros/' + retroID + '/ws');
 
     ws.onopen = function () {
         console.log('WS connected retro=' + retroID);
