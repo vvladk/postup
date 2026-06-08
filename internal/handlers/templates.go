@@ -150,7 +150,7 @@ func sortedColumns(rawCols, rawPos []string) []string {
 
 func insertTemplateColumns(db *sql.DB, templateID int64, regularColumns []string) error {
 	if _, err := db.Exec(
-		`INSERT INTO template_columns (template_id, title, position, type) VALUES (?, 'Action items', 0, 'fixed_first')`,
+		`INSERT INTO template_columns (template_id, title, position, type) VALUES (?, 'Незакриті Action Items', 0, 'fixed_first')`,
 		templateID,
 	); err != nil {
 		return err

@@ -158,6 +158,7 @@ function attachMenuListener(btn) {
 function buildCardMenu(cardId, cardEl, isActive) {
     const menu = document.createElement('div');
     menu.className = 'card-menu';
+    const isAdmin = document.body.dataset.isAdmin === 'true';
 
     if (isActive) {
         menu.appendChild(menuItem('Редагувати', false, function () {
@@ -170,7 +171,7 @@ function buildCardMenu(cardId, cardEl, isActive) {
                 deleteCard(cardId, cardEl);
             }
         }));
-    } else {
+    } else if (isAdmin) {
         menu.appendChild(menuItem('Скопіювати в наступне ретро', false, function () {
             closeAllMenus();
             copyCard(cardId);
@@ -355,7 +356,18 @@ function createVoteBtn(cardId, count, voted) {
     const btn = document.createElement('button');
     btn.className = 'board-card-vote-btn' + (voted ? ' board-card-vote-btn--voted' : '');
     btn.dataset.cardId = cardId;
-    btn.appendChild(document.createTextNode('▲ '));
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('width', '14');
+    svg.setAttribute('height', '14');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'currentColor');
+    svg.setAttribute('aria-hidden', 'true');
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', 'M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3z');
+    svg.appendChild(path);
+    btn.appendChild(svg);
+    btn.appendChild(document.createTextNode(' '));
     const countEl = document.createElement('span');
     countEl.className = 'board-card-vote-count';
     countEl.textContent = count;
