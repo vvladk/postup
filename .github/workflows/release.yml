@@ -42,7 +42,7 @@ jobs:
           CGO_ENABLED: 0
         run: |
           go build -ldflags="-s -w" -o ${{ matrix.binary }} .
-          mkdir postup
+          mkdir -p postup
           mv ${{ matrix.binary }} postup/
           zip -r postup-${{ matrix.os_name }}-${{ matrix.goarch }}.zip postup/
 
@@ -63,4 +63,5 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
+          name: ${{ github.ref_name }}
           files: "*.zip"
