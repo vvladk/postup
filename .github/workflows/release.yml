@@ -41,9 +41,8 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
-          go build -ldflags="-s -w" -o ${{ matrix.binary }} .
-          mkdir -p postup
-          mv ${{ matrix.binary }} postup/
+          mkdir postup
+          go build -ldflags="-s -w" -o postup/${{ matrix.binary }} .
           zip -r postup-${{ matrix.os_name }}-${{ matrix.goarch }}.zip postup/
 
       - uses: actions/upload-artifact@v4
