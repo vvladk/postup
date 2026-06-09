@@ -12,7 +12,6 @@ import (
 	"github.com/postup-app/postup/internal/config"
 	"github.com/postup-app/postup/internal/db"
 	"github.com/postup-app/postup/internal/ipdetect"
-	"github.com/postup-app/postup/internal/scheduler"
 	"github.com/postup-app/postup/internal/server"
 	"github.com/postup-app/postup/internal/ws"
 )
@@ -28,7 +27,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	dbPath := filepath.Join(filepath.Dir(exe), "retro.db")
+	dbDir := filepath.Join(filepath.Dir(exe), "db")
+	if err := os.MkdirAll(dbDir, 0755); err != nil {
+		log.Fatalf("create db dir: %v", err)
+	}
+	dbPath := filepath.Join(dbDir, "retro.db")
 
 	database, err := db.Open(dbPath)
 	if err != nil {
@@ -49,8 +52,6 @@ func main() {
 
 	port := "8080"
 	database.QueryRow(`SELECT value FROM settings WHERE key = 'port'`).Scan(&port)
-
-	scheduler.StartArchiveScheduler(database)
 
 	hub := ws.NewHub()
 	go hub.Run()

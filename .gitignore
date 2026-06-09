@@ -21,3 +21,7 @@ Thumbs.db
 
 # Claude Code (локальні налаштування)
 .claude/settings.local.json
+
+# Внутрішні файли розробки
+CLAUDE.md
+BACKLOG.md

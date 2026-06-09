@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Таймер — Postup</title>
     <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <style>
         .timer-page {
             align-items: center;
@@ -122,20 +123,9 @@
             width: 100%;
         }
 
-        .timer-back {
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            left: 1.5rem;
-            position: fixed;
-            text-decoration: none;
-            top: 1rem;
-        }
-
-        .timer-back:hover { color: var(--text-primary); text-decoration: none; }
     </style>
 </head>
 <body>
-<a class="timer-back" href="/">← Назад</a>
 
 <div class="timer-page">
     <div id="timer-display" class="timer-display">10:00</div>
@@ -157,6 +147,7 @@
             <input id="youtube-url" class="youtube-url-input"
                    type="text" placeholder="YouTube посилання...">
             <button id="btn-load-yt" class="btn btn-primary">Завантажити</button>
+            <button id="btn-reset-yt" class="btn btn-secondary" hidden>Скинути</button>
         </div>
         <div id="youtube-player" class="youtube-player-wrap" hidden>
             <iframe id="youtube-iframe" src=""

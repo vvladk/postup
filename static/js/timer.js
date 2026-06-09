@@ -168,15 +168,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // YouTube
     var btnLoadYT   = document.getElementById('btn-load-yt');
+    var btnResetYT  = document.getElementById('btn-reset-yt');
     var ytURL       = document.getElementById('youtube-url');
     var ytIframe    = document.getElementById('youtube-iframe');
     var ytPlayer    = document.getElementById('youtube-player');
 
+    function showPlayer() {
+        ytPlayer.hidden   = false;
+        btnResetYT.hidden = false;
+        btnLoadYT.hidden  = true;
+    }
+
+    function hidePlayer() {
+        ytIframe.src      = '';
+        ytPlayer.hidden   = true;
+        btnResetYT.hidden = true;
+        btnLoadYT.hidden  = false;
+        ytURL.value       = '';
+    }
+
     btnLoadYT.addEventListener('click', function () {
-        loadYouTubePlayer(ytURL.value.trim(), ytIframe, ytPlayer);
+        var id = extractYouTubeID(ytURL.value.trim());
+        if (!id) { alert('Не вдалося розпізнати YouTube посилання'); return; }
+        ytIframe.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1';
+        showPlayer();
     });
 
+    btnResetYT.addEventListener('click', hidePlayer);
+
     ytURL.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') loadYouTubePlayer(ytURL.value.trim(), ytIframe, ytPlayer);
+        if (e.key === 'Enter') btnLoadYT.click();
     });
 });
