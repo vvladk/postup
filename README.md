@@ -67,7 +67,7 @@ Postup — інструмент для команд, яким важлива п�
 
 ### 1. Завантажити бінарник
 
-На сторінці [Releases](https://github.com/postup-app/postup/releases) доступні архіви для всіх платформ:
+На сторінці [Releases](https://github.com/vvladk/postup/releases) доступні архіви для всіх платформ:
 
 | Платформа | Файл |
 |---|---|
@@ -300,7 +300,7 @@ Postup is a tool for teams that value data privacy and independence from externa
 
 ### 1. Download the binary
 
-Archives for all platforms are available on the [Releases](https://github.com/postup-app/postup/releases) page:
+Archives for all platforms are available on the [Releases](https://github.com/vvladk/postup/releases) page:
 
 | Platform | File |
 |---|---|
